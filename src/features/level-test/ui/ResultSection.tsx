@@ -43,8 +43,8 @@ export function ResultSection({ state, onRestart, onSetDoc, onMarkSaved }: Props
   const ringOffset = circumference - (totalScore / 100) * circumference
 
   return (
-    <section className="w-full max-w-[640px]">
-      <div className="bg-white rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,.08)] border border-[#E4E0DC] px-7 py-9 animate-[fadeUp_.4s_ease]">
+    <section className="w-full max-w-[640px] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,.08)] border border-[#E4E0DC] px-5 sm:px-7 py-9 animate-[fadeUp_.4s_ease]">
 
         {/* ── 상단 레벨 표시 ── */}
         <div className="text-center mb-6">
@@ -69,7 +69,7 @@ export function ResultSection({ state, onRestart, onSetDoc, onMarkSaved }: Props
             />
           </svg>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-            <div className="text-[1.9rem] font-extrabold" style={{ color: lvColor }}>{displayScore}</div>
+            <div className="text-[1.9rem] font-extrabold tabular-nums w-[54px] text-center" style={{ color: lvColor }}>{displayScore}</div>
             <div className="text-[.75rem] text-[#8A8A8A]">/ 100점</div>
           </div>
         </div>

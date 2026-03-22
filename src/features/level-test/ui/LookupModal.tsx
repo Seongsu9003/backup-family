@@ -60,14 +60,14 @@ export function LookupModal({ onSelect, onClose }: Props) {
                 onChange={(e) => setContact(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
                 placeholder="휴대폰 번호 (예: 010-1234-5678)"
-                className="flex-1 px-3 py-2.5 border-[1.5px] border-[#E4E0DC] rounded-lg text-[.9rem] outline-none focus:border-[#D85A3A] transition-colors bg-[#FAFAFA]"
+                className="flex-1 min-w-0 px-3 py-2.5 border-[1.5px] border-[#E4E0DC] rounded-lg text-[.9rem] outline-none focus:border-[#D85A3A] transition-colors bg-[#FAFAFA]"
               />
               <button
                 onClick={handleSearch}
                 disabled={lookupState.isLoading}
-                className="px-4 py-2.5 bg-[#D85A3A] text-white text-[.86rem] font-bold rounded-lg hover:bg-[#C04830] disabled:opacity-50 transition-colors whitespace-nowrap"
+                className="shrink-0 w-16 py-2.5 bg-[#D85A3A] text-white text-[.86rem] font-bold rounded-lg hover:bg-[#C04830] disabled:opacity-50 transition-colors"
               >
-                {lookupState.isLoading ? '조회 중…' : '검색'}
+                {lookupState.isLoading ? '…' : '검색'}
               </button>
             </div>
           </div>

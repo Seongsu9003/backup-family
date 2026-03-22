@@ -24,10 +24,11 @@ interface Props {
 }
 
 export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSetDoc }: Props) {
-  const { certDocs, saved, isUpdate, totalScore, surveyNorm, scenarioNorm } = state
+  const { certDocs, saved, isUpdate, totalScore, surveyNorm, scenarioNorm, testerName, testerContact } = state
 
-  const [name, setName] = useState('')
-  const [contact, setContact] = useState('')
+  // isUpdate 시 기존 결과에서 복원된 이름·연락처로 초기화
+  const [name, setName] = useState(testerName)
+  const [contact, setContact] = useState(testerContact)
   const [jobSeeking, setJobSeeking] = useState('')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [savedExpiresAt, setSavedExpiresAt] = useState('')

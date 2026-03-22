@@ -30,6 +30,8 @@ interface KakaoShareOptions {
     title: string
     description: string
     imageUrl: string
+    imageWidth?: number
+    imageHeight?: number
     link: { mobileWebUrl: string; webUrl: string }
   }
   buttons: Array<{ title: string; link: { mobileWebUrl: string; webUrl: string } }>
@@ -61,12 +63,20 @@ export function ShareButtons({ profileUrl, title, description }: Props) {
 
   const handleKakaoShare = () => {
     if (!window.Kakao?.isInitialized()) return
+    // 동적 OG 이미지: /profile/[testId]/opengraph-image (Next.js ImageResponse)
+    // 미배포 등으로 접근 불가 시 og-default.png 폴백
+    const ogImageUrl = profileUrl.includes('/profile/')
+      ? `${profileUrl}/opengraph-image`
+      : `${window.location.origin}/og-default.png`
+
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
         title,
         description,
-        imageUrl: `${window.location.origin}/og-default.png`,
+        imageUrl: ogImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
         link: { mobileWebUrl: profileUrl, webUrl: profileUrl },
       },
       buttons: [
