@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 비즈니스 플랜 (로컬 전용 — git 제외)
+BUSINESS_PLAN.md

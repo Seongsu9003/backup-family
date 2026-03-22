@@ -10,6 +10,9 @@ import { useSaveResult } from '../model/useSaveResult'
 import { downloadPNG } from '../model/downloadPng'
 import { RegionSelector } from './RegionSelector'
 import { DocAttach } from './DocAttach'
+import { ShareButtons } from '@/features/profile'
+
+const BASE_URL = 'https://backup-family.vercel.app'
 
 interface Props {
   state: QuizState
@@ -28,6 +31,7 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
   const [jobSeeking, setJobSeeking] = useState('')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [savedExpiresAt, setSavedExpiresAt] = useState('')
+  const [savedTestId, setSavedTestId] = useState<string | null>(null)
 
   const { mutate: saveResult, isPending: isSaving } = useSaveResult()
 
@@ -56,6 +60,7 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
       {
         onSuccess: (result) => {
           onMarkSaved()
+          setSavedTestId(result.meta.test_id)
           const exp = new Date(result.meta.expires_at)
           setSavedExpiresAt(
             exp.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -85,6 +90,13 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
 
   // ── 저장 완료 뷰 ──────────────────────────────────
   if (saved && !isUpdate) {
+    const profileUrl = savedTestId
+      ? `${BASE_URL}/profile/${savedTestId}`
+      : `${BASE_URL}/profile/${state.testId ?? ''}`
+    const shareTitle = level
+      ? `${name || '응시자'} 님의 ${level.label} ${level.title} 인증카드`
+      : 'backup-family 돌봄이 인증카드'
+
     return (
       <div className="animate-[fadeUp_.3s_ease]">
         <div className="flex items-center gap-2 px-4 py-3 bg-[#DDF0EE] border border-[#3A9E94] rounded-lg text-[.88rem] font-semibold text-[#1A5F58] mb-3.5">
@@ -96,9 +108,24 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
             <span className="text-[#D85A3A] font-semibold">{savedExpiresAt}</span>까지
           </p>
         )}
+
+        {/* 프로필 링크 박스 */}
+        <div className="px-3.5 py-2.5 bg-[#F7F5F3] border border-[#E4E0DC] rounded-lg mb-3">
+          <p className="text-[.74rem] text-[#8A8A8A] mb-1">내 공개 프로필 링크</p>
+          <p className="text-[.82rem] font-semibold text-[#D85A3A] truncate">{profileUrl}</p>
+        </div>
+
+        {/* 공유 버튼 */}
+        <ShareButtons
+          profileUrl={profileUrl}
+          title={shareTitle}
+          description="backup-family 레벨 테스트 결과"
+        />
+
+        {/* PNG 다운로드 */}
         <button
           onClick={handleDownloadPng}
-          className="w-full py-2.5 border-[1.5px] border-[#E4E0DC] rounded-lg text-[.85rem] font-semibold text-[#4A4A4A] bg-white hover:border-[#D85A3A] hover:text-[#D85A3A] transition-all mb-3"
+          className="w-full py-2.5 mt-2 border-[1.5px] border-[#E4E0DC] rounded-lg text-[.85rem] font-semibold text-[#4A4A4A] bg-white hover:border-[#D85A3A] hover:text-[#D85A3A] transition-all"
         >
           인증 카드 이미지 저장 (PNG)
         </button>
