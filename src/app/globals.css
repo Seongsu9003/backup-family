@@ -16,7 +16,7 @@
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text);
-  --font-sans: var(--font-noto-sans-kr), 'Noto Sans KR', sans-serif;
+  --font-sans: 'Noto Sans KR Variable', 'Noto Sans KR', sans-serif;
 }
 
 body {

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Providers } from './providers'
+// @fontsource-variable: 빌드 타임에 폰트를 자체 호스팅 → 외부 CDN 요청 제거, CLS 방지
+import '@fontsource-variable/noto-sans-kr'
 import './globals.css'
 
 const BASE_URL = 'https://backup-family.vercel.app'
@@ -33,15 +35,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased">
-      <head>
-        {/* Noto Sans KR — next/font/google 대신 직접 로드 (PROD 빌드 시 자동 최적화) */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="min-h-full flex flex-col bg-[#F7F5F3]">
         <Providers>{children}</Providers>
       </body>
