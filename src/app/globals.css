@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* BUF 디자인 토큰 */
+:root {
+  --primary:       #D85A3A;
+  --primary-light: #FAE8E3;
+  --primary-dark:  #C04830;
+  --secondary:     #3A9E94;
+  --bg:            #F7F5F3;
+  --surface:       #FFFFFF;
+  --text:          #2C2C2C;
+  --text-sub:      #666666;
+  --border:        #E8E4E0;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --font-sans: var(--font-noto-sans-kr), 'Noto Sans KR', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* 공통 select 스타일 */
+.filter-select {
+  padding: 9px 32px 9px 13px;
+  border: 1.5px solid #E4E0DC;
+  border-radius: 8px;
+  font-size: .87rem;
+  outline: none;
+  background-color: #fff;
+  color: #1A1A1A;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8A8A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: border-color .15s;
+}
+.filter-select:focus { border-color: #D85A3A; }
