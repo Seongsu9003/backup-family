@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? 'dolbom2026'
+// 환경변수 미설정 시 로그인 불가 (fallback 하드코딩 제거)
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? ''
 
 interface Props {
   onLogin: () => void

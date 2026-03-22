@@ -366,10 +366,10 @@ export function ResultSection({ state, onRestart, onSetDoc, onMarkSaved }: Props
         {/* ── 레벨 설명 ── */}
         {level && (
           <>
-            <div
-              className="bg-[#F7F5F3] rounded-xl px-4 py-4 text-[.88rem] leading-[1.7] mb-4 border border-[#E4E0DC] [&_h4]:text-[.84rem] [&_h4]:font-bold [&_h4]:text-[#D85A3A] [&_h4]:mb-2"
-              dangerouslySetInnerHTML={{ __html: level.desc }}
-            />
+            <div className="bg-[#F7F5F3] rounded-xl px-4 py-4 text-[.88rem] leading-[1.7] mb-4 border border-[#E4E0DC]">
+              <h4 className="text-[.84rem] font-bold text-[#D85A3A] mb-2">진단 결과</h4>
+              <p>{level.descText}</p>
+            </div>
             <div className="bg-[#F7F5F3] border border-[#E4E0DC] rounded-xl px-4 py-4 text-[.86rem] leading-[1.7] mb-7">
               <h4 className="text-[.84rem] font-bold text-[#4A4A4A] mb-2.5">추천 다음 단계</h4>
               <ul className="pl-4 list-disc">

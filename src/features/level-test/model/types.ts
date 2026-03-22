@@ -2,6 +2,10 @@
 //  레벨 테스트 상태 타입 정의
 // ═══════════════════════════════════════════════════
 import type { Question, LevelDef, CareTypeDef } from './constants'
+import type { TestResult } from '@/shared/types'
+
+// shared TestResult를 재사용 — 별도 ExistingResult 중복 제거
+export type ExistingResult = TestResult
 
 export type QuizStep = 'intro' | 'quiz' | 'result'
 
@@ -39,32 +43,6 @@ export type QuizAction =
   | { type: 'LOAD_EXISTING'; result: ExistingResult }
   | { type: 'SET_DOC'; key: keyof CertDocs; value: string | null }
   | { type: 'RESTART' }
-
-// 기존 결과 불러오기용 구조
-export interface ExistingResult {
-  meta: { test_id: string; created_at: string; expires_at: string; version?: string }
-  tester: { name: string; contact: string; preferred_region: string[] }
-  score: { total: number; survey: number; scenario: number; max?: number }
-  level: { num: number; label: string }
-  care_type: { code: string; label: string; fullLabel: string; color: string } | null
-  job_seeking: string
-  certification: {
-    status: string
-    docs_attached: string[]
-    admin_memo: string
-    certified_at: string | null
-  }
-  scenario_ids?: string[]
-  question_log?: Array<{
-    q_id: string
-    type: string
-    category: string
-    chosen_idx: number
-    correct_idx: number | null
-    score: number
-    max_score: number
-  }>
-}
 
 // ── Reducer ──────────────────────────────────────
 export const initialState: QuizState = {
