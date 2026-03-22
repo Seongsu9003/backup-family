@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/lib/supabase'
+import { getLevel } from './constants'
 import type { QuizState } from './types'
 import type { Question } from './constants'
 
@@ -68,10 +69,11 @@ function buildResult(payload: SavePayload) {
       scenario: quizState.scenarioNorm,
       max: 100,
     },
-    level: {
-      num: quizState.level!.num,
-      label: `${quizState.level!.label} ${quizState.level!.title}`,
-    },
+    level: (() => {
+      // level이 null일 경우(기존 결과 불러오기 시) 점수로 복원
+      const lv = quizState.level ?? getLevel(quizState.totalScore)
+      return { num: lv.num, label: `${lv.label} ${lv.title}` }
+    })(),
     care_type: quizState.careType
       ? {
           code: quizState.careType.code,

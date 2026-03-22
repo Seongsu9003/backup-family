@@ -88,15 +88,15 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
     )
   }
 
+  // ── 프로필 공유 블록 (저장 완료 또는 기존 결과 조회 시 모두 표시) ──
+  const activeTestId = savedTestId ?? state.testId
+  const profileUrl = activeTestId ? `${BASE_URL}/profile/${activeTestId}` : null
+  const shareTitle = level
+    ? `${name || '응시자'} 님의 ${level.label} ${level.title} 인증카드`
+    : 'backup-family 돌봄이 인증카드'
+
   // ── 저장 완료 뷰 ──────────────────────────────────
   if (saved && !isUpdate) {
-    const profileUrl = savedTestId
-      ? `${BASE_URL}/profile/${savedTestId}`
-      : `${BASE_URL}/profile/${state.testId ?? ''}`
-    const shareTitle = level
-      ? `${name || '응시자'} 님의 ${level.label} ${level.title} 인증카드`
-      : 'backup-family 돌봄이 인증카드'
-
     return (
       <div className="animate-[fadeUp_.3s_ease]">
         <div className="flex items-center gap-2 px-4 py-3 bg-[#DDF0EE] border border-[#3A9E94] rounded-lg text-[.88rem] font-semibold text-[#1A5F58] mb-3.5">
@@ -109,18 +109,16 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
           </p>
         )}
 
-        {/* 프로필 링크 박스 */}
-        <div className="px-3.5 py-2.5 bg-[#F7F5F3] border border-[#E4E0DC] rounded-lg mb-3">
-          <p className="text-[.74rem] text-[#8A8A8A] mb-1">내 공개 프로필 링크</p>
-          <p className="text-[.82rem] font-semibold text-[#D85A3A] truncate">{profileUrl}</p>
-        </div>
-
-        {/* 공유 버튼 */}
-        <ShareButtons
-          profileUrl={profileUrl}
-          title={shareTitle}
-          description="backup-family 레벨 테스트 결과"
-        />
+        {/* 프로필 링크 + 공유 버튼 */}
+        {profileUrl && (
+          <>
+            <div className="px-3.5 py-2.5 bg-[#F7F5F3] border border-[#E4E0DC] rounded-lg mb-3">
+              <p className="text-[.74rem] text-[#8A8A8A] mb-1">내 공개 프로필 링크</p>
+              <p className="text-[.82rem] font-semibold text-[#D85A3A] truncate">{profileUrl}</p>
+            </div>
+            <ShareButtons profileUrl={profileUrl} title={shareTitle} description="backup-family 레벨 테스트 결과" />
+          </>
+        )}
 
         {/* PNG 다운로드 */}
         <button
@@ -134,9 +132,24 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
   }
 
   // ── 저장 폼 뷰 ────────────────────────────────────
+  // ── 저장 폼 뷰 (신규 저장 or 기존 결과 수정) ────────────────
   return (
     <div>
-      <h3 className="text-base font-bold text-[#1A1A1A] mb-1.5">결과 저장 및 인증 신청</h3>
+      {/* 기존 결과 조회 시: 프로필 링크 + 공유 버튼 상단 노출 */}
+      {isUpdate && profileUrl && (
+        <div className="mb-5">
+          <div className="px-3.5 py-2.5 bg-[#F7F5F3] border border-[#E4E0DC] rounded-lg mb-2">
+            <p className="text-[.74rem] text-[#8A8A8A] mb-1">내 공개 프로필 링크</p>
+            <p className="text-[.82rem] font-semibold text-[#D85A3A] truncate">{profileUrl}</p>
+          </div>
+          <ShareButtons profileUrl={profileUrl} title={shareTitle} description="backup-family 레벨 테스트 결과" />
+          <hr className="border-[#E4E0DC] mt-5 mb-5" />
+        </div>
+      )}
+
+      <h3 className="text-base font-bold text-[#1A1A1A] mb-1.5">
+        {isUpdate ? '결과 업데이트' : '결과 저장 및 인증 신청'}
+      </h3>
       <p className="text-[.84rem] text-[#8A8A8A] mb-5 leading-[1.6]">
         이름과 연락처를 입력하면 결과가 저장됩니다. 서류를 첨부하면 관리자 검토 후 인증 뱃지를 받을 수 있습니다.
       </p>

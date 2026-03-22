@@ -2,6 +2,7 @@
 //  레벨 테스트 상태 타입 정의
 // ═══════════════════════════════════════════════════
 import type { Question, LevelDef, CareTypeDef } from './constants'
+import { getLevel, CARE_TYPES } from './constants'
 import type { TestResult } from '@/shared/types'
 
 // shared TestResult를 재사용 — 별도 ExistingResult 중복 제거
@@ -109,6 +110,11 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
 
     case 'LOAD_EXISTING': {
       const r = action.result
+      // level·careType 복원 — null이면 저장 시 'num' 접근 오류 발생
+      const restoredLevel = getLevel(r.score.total)
+      const restoredCareType = r.care_type?.code
+        ? (CARE_TYPES[r.care_type.code] ?? null)
+        : null
       return {
         ...initialState,
         step: 'result',
@@ -118,6 +124,8 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
         totalScore: r.score.total,
         surveyNorm: r.score.survey,
         scenarioNorm: r.score.scenario,
+        level: restoredLevel,
+        careType: restoredCareType,
         questions: [],
         answers: (r.question_log || []).map((l) => l.chosen_idx),
       }
