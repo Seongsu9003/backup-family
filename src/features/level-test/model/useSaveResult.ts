@@ -45,6 +45,25 @@ export function useSaveResult() {
         .from('test_results')
         .upsert(toDbRow(result), { onConflict: 'test_id' })
       if (error) throw error
+
+      // 텔레그램 알림 발송 (실패해도 저장 흐름에 영향 없음)
+      fetch('/api/notify/result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testId: result.meta.test_id,
+          name: result.tester.name,
+          level: result.level.label,
+          careType: result.care_type?.label ?? null,
+          certStatus: result.certification.status,
+          score: result.score.total,
+          preferredRegion: Array.isArray(result.tester.preferred_region)
+            ? result.tester.preferred_region
+            : [],
+          jobSeeking: result.job_seeking,
+        }),
+      }).catch((err) => console.warn('[useSaveResult] 알림 전송 오류:', err))
+
       return result
     },
     onSuccess: () => {
