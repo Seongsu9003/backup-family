@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-//  Next.js Middleware (SEC-03)
+//  Next.js Proxy (SEC-03) — Next.js 16에서 middleware → proxy로 변경
 //  /search 접근 시 buf_search_access 쿠키를 검증합니다.
 //  쿠키가 없거나 유효하지 않으면 /search/access로 리다이렉트합니다.
 // ═══════════════════════════════════════════════════
@@ -9,7 +9,7 @@ import type { NextRequest } from 'next/server'
 const COOKIE_NAME  = 'buf_search_access'
 const COOKIE_VALUE = 'granted'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const cookie = request.cookies.get(COOKIE_NAME)
 
   if (cookie?.value !== COOKIE_VALUE) {

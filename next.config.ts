@@ -12,14 +12,19 @@ export default withSentryConfig(nextConfig, {
   org:     'backup-family',
   project: 'javascript-nextjs',
 
-  // 소스맵을 Sentry에 업로드하여 스택트레이스 디버깅 가능
+  // 소스맵을 Sentry에 업로드 후 번들에서 제거 (hideSourceMaps 대체)
   silent: true,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 
-  // 빌드 시 Sentry CLI 자동 릴리즈 생성
-  autoInstrumentServerFunctions: true,
-  hideSourceMaps: true,
-
-  // 번들 크기 최적화 — 사용하지 않는 Sentry 기능 tree-shake
-  disableLogger: true,
   widenClientFileUpload: true,
+
+  // @sentry/nextjs v9 — deprecated 옵션을 webpack 하위로 이동
+  webpack: {
+    autoInstrumentServerFunctions: true,
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 })
