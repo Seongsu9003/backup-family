@@ -1,4 +1,5 @@
 import type { TestResult } from '@/shared/types'
+import { isExpired as _isExpired, isExpiringSoon as _isExpiringSoon, fmtDate } from '@/shared/lib/dateUtils'
 
 export type TabKey =
   | 'all'
@@ -19,21 +20,17 @@ export const TAB_LABELS: Record<TabKey, string> = {
   expiring:    '만료 임박',
 }
 
+// shared/lib/dateUtils의 순수 함수를 TestResult 기반 인터페이스로 래핑
 export function isExpiringSoon(r: TestResult): boolean {
-  const diff = (new Date(r.meta.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  return diff >= 0 && diff <= 7
+  return _isExpiringSoon(r.meta.expires_at)
 }
 
 export function isExpired(r: TestResult): boolean {
-  return new Date(r.meta.expires_at) < new Date()
+  return _isExpired(r.meta.expires_at)
 }
 
-export function fmtDate(iso?: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-  })
-}
+// fmtDate는 shared에서 그대로 re-export
+export { fmtDate }
 
 export function getTabResults(results: TestResult[], tab: TabKey): TestResult[] {
   switch (tab) {

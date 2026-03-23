@@ -33,6 +33,16 @@
 - **스타일링:** Tailwind CSS 클래스만 사용합니다. 인라인 스타일 금지.
 - **타입:** `any` 타입 사용 금지. 모든 타입은 `src/shared/types/index.ts` 또는 feature별 types.ts에 정의합니다.
 
+## 🏗 FSD 레이어 규칙
+- **의존 방향:** `app → features → shared` 단방향만 허용합니다. 역방향(shared → features, features → app) 금지.
+- **feature 간 참조:** feature끼리 직접 import 금지. 공유가 필요한 코드는 `shared/`로 올립니다.
+  - ✅ `features/profile` → `shared/lib/dateUtils`
+  - ❌ `features/profile` → `features/admin/model/types`
+- **shared/lib 기준:** 2개 이상의 feature에서 사용되는 순수 유틸 함수(날짜 계산, 문자열 포맷 등)는 반드시 `src/shared/lib/`에 위치합니다.
+- **shared/ui 기준:** 2개 이상의 feature에서 사용되는 UI 컴포넌트는 `src/shared/ui/`에 위치합니다.
+- **index.ts barrel export:** 각 feature의 공개 인터페이스는 `feature/index.ts`를 통해서만 노출합니다. 내부 모듈 직접 import 지양.
+- **model vs ui 분리:** 비즈니스 로직(hooks, 순수 함수, 타입)은 `model/`, UI 렌더링은 `ui/`에만 위치합니다.
+
 ## 📋 작업 규칙 (Workflow)
 
 > **⚠️ 모든 개발 작업은 반드시 아래 순서를 따릅니다.**
