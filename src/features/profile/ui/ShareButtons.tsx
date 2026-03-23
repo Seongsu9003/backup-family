@@ -1,89 +1,32 @@
 'use client'
 
 // ═══════════════════════════════════════════════════
-//  공유 버튼 — 카카오톡 공유 + 링크 복사
-//  카카오 앱키: NEXT_PUBLIC_KAKAO_APP_KEY 환경변수 필요
+//  공유 버튼 — Web Share API (네이티브) + 링크 복사
+//
+//  [기술 부채] Kakao SDK sendDefault는 imageUrl 필수 필드 문제로
+//  일시 제거. 향후 og-default.png 안정화 후 SDK 복원 예정.
+//  Web Share API는 iOS/Android 네이티브 공유 시트를 통해
+//  KakaoTalk·Instagram·SMS 등 모든 앱에 공유 가능.
 // ═══════════════════════════════════════════════════
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 interface Props {
   profileUrl: string
-  title: string        // 예: "홍*동 님의 Lv.3 중급 돌봄이 인증카드"
-  description: string  // 예: "backup-family 레벨 테스트 결과"
-}
-
-declare global {
-  interface Window {
-    Kakao?: {
-      isInitialized: () => boolean
-      init: (key: string) => void
-      Share: {
-        sendDefault: (options: KakaoShareOptions) => void
-      }
-    }
-  }
-}
-
-interface KakaoShareOptions {
-  objectType: string
-  content: {
-    title: string
-    description: string
-    imageUrl: string
-    imageWidth?: number
-    imageHeight?: number
-    link: { mobileWebUrl: string; webUrl: string }
-  }
-  buttons: Array<{ title: string; link: { mobileWebUrl: string; webUrl: string } }>
+  title: string
+  description: string
 }
 
 export function ShareButtons({ profileUrl, title, description }: Props) {
   const [copied, setCopied] = useState(false)
-  const [kakaoReady, setKakaoReady] = useState(false)
+  // Web Share API 지원 여부 (SSR 안전하게 처리)
+  const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share
 
-  // 카카오 SDK 동적 로드
-  useEffect(() => {
-    const appKey = process.env.NEXT_PUBLIC_KAKAO_APP_KEY
-    if (!appKey) return
-
-    if (window.Kakao?.isInitialized()) {
-      setKakaoReady(true)
-      return
+  const handleNativeShare = async () => {
+    try {
+      await navigator.share({ title, text: description, url: profileUrl })
+    } catch {
+      // 사용자가 공유 취소한 경우 등 — 무시
     }
-
-    const script = document.createElement('script')
-    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js'
-    script.async = true
-    script.onload = () => {
-      window.Kakao?.init(appKey)
-      setKakaoReady(true)
-    }
-    document.head.appendChild(script)
-  }, [])
-
-  const handleKakaoShare = () => {
-    if (!window.Kakao?.isInitialized()) return
-    // imageUrl: 안정적인 정적 파일 사용 (동적 OG는 Kakao가 링크 미리볼 때 메타태그로 적용)
-    const baseUrl = `${window.location.protocol}//${window.location.host}`
-    const staticImageUrl = `${baseUrl}/og-default.png`
-
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title,
-        description,
-        imageUrl: staticImageUrl,
-        imageWidth: 1200,
-        imageHeight: 630,
-        link: { mobileWebUrl: profileUrl, webUrl: profileUrl },
-      },
-      buttons: [
-        {
-          title: '프로필 보기',
-          link: { mobileWebUrl: profileUrl, webUrl: profileUrl },
-        },
-      ],
-    })
   }
 
   const handleCopyLink = async () => {
@@ -92,7 +35,7 @@ export function ShareButtons({ profileUrl, title, description }: Props) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // clipboard API 미지원 환경 폴백
+      // clipboard API 미지원 폴백
       const input = document.createElement('input')
       input.value = profileUrl
       document.body.appendChild(input)
@@ -106,16 +49,18 @@ export function ShareButtons({ profileUrl, title, description }: Props) {
 
   return (
     <div className="flex gap-2 mt-3">
-      {/* 카카오톡 공유 */}
-      {kakaoReady && (
+      {/* 네이티브 공유 (모바일: KakaoTalk 등 앱 선택 가능) */}
+      {canNativeShare && (
         <button
-          onClick={handleKakaoShare}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[.88rem] font-bold bg-[#FEE500] text-[#191919] hover:bg-[#F0D800] transition-colors"
+          onClick={handleNativeShare}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[.88rem] font-bold bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path fillRule="evenodd" clipRule="evenodd" d="M9 1.5C4.86 1.5 1.5 4.19 1.5 7.5c0 2.1 1.26 3.95 3.18 5.08l-.81 2.97a.3.3 0 00.44.33l3.6-2.38c.35.04.7.07 1.09.07 4.14 0 7.5-2.69 7.5-6s-3.36-6-7.5-6z" fill="#191919"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
           </svg>
-          카카오톡 공유
+          공유하기
         </button>
       )}
 
