@@ -1,24 +1,33 @@
 'use client'
 
 import { useState } from 'react'
-
-// 환경변수 미설정 시 로그인 불가 (fallback 하드코딩 제거)
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? ''
+import { signIn } from '../model/useAdminAuth'
+import type { Session } from '@supabase/supabase-js'
 
 interface Props {
-  onLogin: () => void
+  onLogin: (session: Session) => void
 }
 
 export function LoginScreen({ onLogin }: Props) {
-  const [pw, setPw]       = useState('')
-  const [error, setError] = useState(false)
+  const [email,     setEmail]     = useState('')
+  const [pw,        setPw]        = useState('')
+  const [error,     setError]     = useState<string | null>(null)
+  const [loading,   setLoading]   = useState(false)
 
-  const submit = () => {
-    if (pw === ADMIN_PASSWORD) {
-      onLogin()
-    } else {
-      setError(true)
+  const submit = async () => {
+    setError(null)
+    setLoading(true)
+
+    const { session, error: authError } = await signIn(email, pw)
+
+    setLoading(false)
+
+    if (authError || !session) {
+      setError(authError ?? '로그인에 실패했습니다.')
+      return
     }
+
+    onLogin(session)
   }
 
   return (
@@ -27,25 +36,42 @@ export function LoginScreen({ onLogin }: Props) {
         <h1 className="text-xl font-extrabold text-[#D85A3A] mb-1">backup-family</h1>
         <p className="text-sm text-[#8A8A8A] mb-8">관리자 전용 페이지입니다</p>
 
+        {/* 이메일 */}
         <label className="block text-xs font-bold text-[#8A8A8A] uppercase tracking-wide mb-1.5">
-          관리자 비밀번호
+          이메일
+        </label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(null) }}
+          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          placeholder="관리자 이메일"
+          className="w-full px-4 py-3 border-[1.5px] border-[#E4E0DC] rounded-lg text-sm outline-none focus:border-[#D85A3A] transition-colors mb-4"
+        />
+
+        {/* 비밀번호 */}
+        <label className="block text-xs font-bold text-[#8A8A8A] uppercase tracking-wide mb-1.5">
+          비밀번호
         </label>
         <input
           type="password"
           value={pw}
-          onChange={(e) => { setPw(e.target.value); setError(false) }}
+          onChange={(e) => { setPw(e.target.value); setError(null) }}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           placeholder="비밀번호 입력"
           className="w-full px-4 py-3 border-[1.5px] border-[#E4E0DC] rounded-lg text-sm outline-none focus:border-[#D85A3A] transition-colors mb-2"
         />
+
         {error && (
-          <p className="text-xs text-red-500 mb-3">비밀번호가 올바르지 않습니다.</p>
+          <p className="text-xs text-red-500 mb-3">{error}</p>
         )}
+
         <button
           onClick={submit}
-          className="w-full py-3 bg-[#D85A3A] text-white font-bold rounded-lg hover:bg-[#C04830] transition-colors mt-2"
+          disabled={loading}
+          className="w-full py-3 bg-[#D85A3A] text-white font-bold rounded-lg hover:bg-[#C04830] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          로그인
+          {loading ? '로그인 중…' : '로그인'}
         </button>
       </div>
     </div>

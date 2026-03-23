@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import type { Session } from '@supabase/supabase-js'
 import type { TestResult } from '@/shared/types'
 import { useAdminResults } from '../model/useAdminResults'
 import { getTabResults, type TabKey } from '../model/types'
+import { getSession, signOut } from '../model/useAdminAuth'
 import { LoginScreen } from './LoginScreen'
 import { StatsBar } from './StatsBar'
 import { ResultsTable } from './ResultsTable'
@@ -45,14 +47,38 @@ function exportCSV(results: TestResult[], tab: TabKey) {
 }
 
 export function AdminPage() {
-  const [loggedIn, setLoggedIn]       = useState(false)
-  const [activeTab, setActiveTab]     = useState<TabKey>('all')
-  const [selected, setSelected]       = useState<TestResult | null>(null)
+  // Supabase 세션으로 인증 관리 (null = 미확인, false = 미인증, Session = 인증됨)
+  const [session,    setSession]    = useState<Session | null | false>(null)
+  const [activeTab,  setActiveTab]  = useState<TabKey>('all')
+  const [selected,   setSelected]   = useState<TestResult | null>(null)
 
   const { data: results = [], isLoading, refetch } = useAdminResults()
 
-  if (!loggedIn) return <LoginScreen onLogin={() => setLoggedIn(true)} />
+  // 마운트 시 기존 세션 복원
+  useEffect(() => {
+    getSession().then((s) => setSession(s ?? false))
+  }, [])
 
+  const handleLogout = async () => {
+    await signOut()
+    setSession(false)
+  }
+
+  // 세션 확인 전 (초기 로딩)
+  if (session === null) {
+    return (
+      <div className="min-h-screen bg-[#F7F5F3] flex items-center justify-center">
+        <p className="text-[#8A8A8A] text-sm">인증 확인 중…</p>
+      </div>
+    )
+  }
+
+  // 미인증
+  if (session === false) {
+    return <LoginScreen onLogin={(s) => setSession(s)} />
+  }
+
+  // 인증됨
   return (
     <>
       {/* ── TOPBAR ──────────────────────────── */}
@@ -75,7 +101,7 @@ export function AdminPage() {
             새로고침
           </button>
           <button
-            onClick={() => setLoggedIn(false)}
+            onClick={handleLogout}
             className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors"
           >
             로그아웃

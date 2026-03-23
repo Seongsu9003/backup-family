@@ -34,10 +34,14 @@
 - **타입:** `any` 타입 사용 금지. 모든 타입은 `src/shared/types/index.ts` 또는 feature별 types.ts에 정의합니다.
 
 ## 📋 작업 규칙 (Workflow)
-1. **코드 작성 전:** 복잡한 로직은 먼저 논리적 구조(의사코드)를 제안하고 승인을 받으세요.
-2. **에러 처리:** 모든 API 호출에는 `try-catch` 블록과 사용자 친화적인 에러 메시지를 포함합니다.
-3. **테스트:** 비즈니스 로직이 포함된 유틸리티 함수에는 `Vitest` 기반의 테스트 코드를 함께 작성합니다.
-4. **상수:** `BASE_URL`, 환경변수 등 반복 사용되는 값은 `src/shared/lib/constants.ts`에서 관리합니다.
+
+> **⚠️ 모든 개발 작업은 반드시 아래 순서를 따릅니다.**
+
+1. **계획 먼저:** 구현 전에 변경 범위·파일·로직 구조를 설명하고 승인을 받습니다.
+2. **테스트 코드 작성 → 컨펌:** 구현 전에 테스트 코드를 먼저 작성하여 공유하고, 승인 후 본 구현을 진행합니다.
+3. **구현:** 승인된 계획과 테스트를 기반으로 코드를 작성합니다.
+4. **에러 처리:** 모든 API 호출에는 `try-catch` 블록과 사용자 친화적인 에러 메시지를 포함합니다.
+5. **상수:** `BASE_URL`, 환경변수 등 반복 사용되는 값은 `src/shared/lib/constants.ts`에서 관리합니다.
 
 ## 🚫 금지 사항
 - 중복된 유틸리티 함수를 만들지 마세요.
@@ -53,11 +57,11 @@
 | `NEXT_PUBLIC_KAKAO_APP_KEY` | 카카오 JS SDK 앱 키 |
 
 ## 🐛 알려진 기술 부채
-- **[SEC-01]** 관리자 인증이 클라이언트 사이드 전용 — Supabase RLS 설계 필요
-- **[SEC-02]** `useLookupResult` 전체 이름 스캔 후 클라이언트 필터 → DB 쿼리에 phone 조건 추가 필요
-- **[BUG-01]** `isUpdate` 시 `jobSeeking`/`selectedRegions` 미복원
-- **[CODE-01]** `BASE_URL` 여러 파일 하드코딩 → `shared/lib/constants.ts` 추출 필요
-- **[TEST-01]** `buildResult`, `quizReducer` 테스트 미작성
+- ~~**[SEC-01]** 관리자 인증이 클라이언트 사이드 전용 — Supabase Auth + RLS 설계 필요~~ → ✅ 해결
+- ~~**[SEC-02]** `useLookupResult` 전체 이름 스캔 후 클라이언트 필터~~ → ✅ 해결
+- ~~**[BUG-01]** `isUpdate` 시 `jobSeeking`/`selectedRegions` 미복원~~ → ✅ 해결
+- ~~**[CODE-01]** `BASE_URL` 여러 파일 하드코딩~~ → ✅ 해결
+- ~~**[TEST-01]** `buildResult`, `quizReducer` 테스트 미작성~~ → ✅ 해결
 
 ## 💬 소통 스타일
 - 간결하고 기술적인 톤을 유지하세요.
