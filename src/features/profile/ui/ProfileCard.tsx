@@ -3,8 +3,10 @@
 // ═══════════════════════════════════════════════════
 //  공개 프로필 카드 — 보호자가 보는 돌봄이 인증 정보
 // ═══════════════════════════════════════════════════
+import { useState } from 'react'
 import type { TestResult } from '@/shared/types'
 import { ShareButtons } from './ShareButtons'
+import { ContactModal } from './ContactModal'
 
 const LV_COLORS: Record<number, string> = {
   1: '#909090', 2: '#4A9FCC', 3: '#3A9E94', 4: '#D85A3A', 5: '#8B4EAB',
@@ -30,6 +32,7 @@ interface Props {
 }
 
 export function ProfileCard({ result, profileUrl }: Props) {
+  const [contactOpen, setContactOpen] = useState(false)
   const { tester, score, level, care_type, certification, job_seeking, meta } = result
   const lvColor = LV_COLORS[level.num] ?? '#D85A3A'
   const certStyle = CERT_STYLE[certification.status] ?? CERT_STYLE['미인증']
@@ -145,16 +148,25 @@ export function ProfileCard({ result, profileUrl }: Props) {
           </div>
         </div>
 
-        {/* 연락하기 버튼 */}
+        {/* 연결 요청 버튼 (BIZ-03) */}
         <div className="px-6 pb-5 border-t border-[#F0EDE8] pt-4">
-          <a
-            href={`mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(profileUrl)}`}
+          <button
+            onClick={() => setContactOpen(true)}
             className="block w-full py-3 text-center text-[.95rem] font-bold bg-[#D85A3A] text-white rounded-xl hover:bg-[#C04830] transition-colors mb-2"
           >
-            연락 요청하기
-          </a>
+            연결 요청하기
+          </button>
           <ShareButtons profileUrl={profileUrl} title={shareTitle} description={shareDesc} />
         </div>
+
+        {/* 연결 요청 모달 */}
+        {contactOpen && (
+          <ContactModal
+            caregiverName={maskName(tester.name)}
+            profileUrl={profileUrl}
+            onClose={() => setContactOpen(false)}
+          />
+        )}
       </div>
 
       {/* CTA — 테스트 유도 */}
