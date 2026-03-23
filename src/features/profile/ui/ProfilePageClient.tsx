@@ -84,7 +84,7 @@ export function ProfilePageClient({ testId, profileUrl }: Props) {
         </p>
 
         <a
-          href="/"
+          href={`/?retest=${testId}`}
           className="w-full py-3 bg-[#D85A3A] text-white text-[.92rem] font-bold rounded-xl hover:bg-[#C04830] transition-colors text-center"
         >
           재테스트 시작하기

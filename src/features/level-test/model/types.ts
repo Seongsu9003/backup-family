@@ -37,6 +37,8 @@ export interface QuizState {
   testerContact: string
   testerJobSeeking: string        // isUpdate 시 폼 초기값 복원용
   testerPreferredRegion: string[] // isUpdate 시 폼 초기값 복원용
+  // 재테스트 (BIZ-02) — 이전 만료 결과 기반 재응시
+  retestPrevLevel: string | null  // 인트로 배너 표시용 (예: "Lv.2 중급")
 }
 
 export type QuizAction =
@@ -49,6 +51,14 @@ export type QuizAction =
   | { type: 'LOAD_EXISTING'; result: ExistingResult }
   | { type: 'SET_DOC'; key: keyof CertDocs; value: string | null }
   | { type: 'RESTART' }
+  | {
+      type: 'SET_RETEST_PREFILL'
+      name: string
+      contact: string
+      jobSeeking: string
+      preferredRegion: string[]
+      prevLevel: string
+    }
 
 // ── Reducer ──────────────────────────────────────
 export const initialState: QuizState = {
@@ -69,6 +79,7 @@ export const initialState: QuizState = {
   testerContact: '',
   testerJobSeeking: '',
   testerPreferredRegion: [],
+  retestPrevLevel: null,
 }
 
 export function quizReducer(state: QuizState, action: QuizAction): QuizState {
@@ -148,6 +159,16 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
       return {
         ...state,
         certDocs: { ...state.certDocs, [action.key]: action.value },
+      }
+
+    case 'SET_RETEST_PREFILL':
+      return {
+        ...state,
+        testerName: action.name,
+        testerContact: action.contact,
+        testerJobSeeking: action.jobSeeking,
+        testerPreferredRegion: action.preferredRegion,
+        retestPrevLevel: action.prevLevel,
       }
 
     case 'RESTART':

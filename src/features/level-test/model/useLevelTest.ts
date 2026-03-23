@@ -77,6 +77,20 @@ export function useLevelTest() {
     dispatch({ type: 'RESTART' })
   }, [])
 
+  // ── 재테스트 prefill (BIZ-02) ─────────────────
+  const setRetestPrefill = useCallback(
+    (params: {
+      name: string
+      contact: string
+      jobSeeking: string
+      preferredRegion: string[]
+      prevLevel: string
+    }) => {
+      dispatch({ type: 'SET_RETEST_PREFILL', ...params })
+    },
+    []
+  )
+
   return {
     state,
     startTest,
@@ -87,5 +101,6 @@ export function useLevelTest() {
     loadExistingResult,
     setDoc,
     restart,
+    setRetestPrefill,
   }
 }

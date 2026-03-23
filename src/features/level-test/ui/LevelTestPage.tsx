@@ -5,15 +5,18 @@
 // ═══════════════════════════════════════════════════
 import { useState } from 'react'
 import { useLevelTest } from '../model/useLevelTest'
-import { LEVELS, getLevel, calcCareType } from '../model/constants'
+import { useRetestPrefill } from '../model/useRetestPrefill'
 import { IntroSection } from './IntroSection'
 import { QuizSection } from './QuizSection'
 import { ResultSection } from './ResultSection'
 import { LookupModal } from './LookupModal'
 import type { ExistingResult } from '../model/types'
-import type { CertDocs } from '../model/types'
 
-export function LevelTestPage() {
+interface Props {
+  retestId?: string
+}
+
+export function LevelTestPage({ retestId }: Props) {
   const {
     state,
     startTest,
@@ -24,9 +27,13 @@ export function LevelTestPage() {
     loadExistingResult,
     setDoc,
     restart,
+    setRetestPrefill,
   } = useLevelTest()
 
   const [lookupOpen, setLookupOpen] = useState(false)
+
+  // 재테스트 prefill — 만료 검증 + 이전 정보 자동 채우기 (BIZ-02)
+  useRetestPrefill({ retestId, setRetestPrefill })
 
   // 기존 결과 불러오기 → 결과 화면으로 바로 이동
   const handleLoadExisting = (result: ExistingResult) => {
@@ -61,6 +68,20 @@ export function LevelTestPage() {
           </p>
         </div>
       </header>
+
+      {/* ── 재테스트 배너 (BIZ-02) ───────────── */}
+      {state.retestPrevLevel && state.step === 'intro' && (
+        <div className="w-full max-w-[640px] mb-5 px-4 py-3 bg-[#FFF4E6] border border-[#F5A623] rounded-xl flex items-center gap-2.5">
+          <span className="text-lg">🔄</span>
+          <div>
+            <p className="text-[.83rem] font-bold text-[#B8740A]">재테스트 모드</p>
+            <p className="text-[.78rem] text-[#8A6020]">
+              이전 인증이 만료되었습니다. 이름·연락처·지역이 자동으로 채워집니다.
+              <span className="ml-1 font-semibold">이전 레벨: {state.retestPrevLevel}</span>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ── 콘텐츠 ───────────────────────────── */}
       {state.step === 'intro' && (
