@@ -33,9 +33,10 @@ export function ResultModal({ result: r, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/40 overflow-y-auto z-50"
       onClick={onClose}
     >
+      <div className="flex min-h-full items-center justify-center p-4">
       <div
         className="bg-white rounded-2xl w-full max-w-[600px] shadow-2xl my-4"
         onClick={(e) => e.stopPropagation()}
@@ -209,6 +210,7 @@ export function ResultModal({ result: r, onClose }: Props) {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   )
