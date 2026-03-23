@@ -11,8 +11,7 @@ import { downloadPNG } from '../model/downloadPng'
 import { RegionSelector } from './RegionSelector'
 import { DocAttach } from './DocAttach'
 import { ShareButtons } from '@/features/profile'
-
-const BASE_URL = 'https://backup-family.vercel.app'
+import { BASE_URL } from '@/shared/lib/constants'
 
 interface Props {
   state: QuizState
@@ -24,13 +23,17 @@ interface Props {
 }
 
 export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSetDoc }: Props) {
-  const { certDocs, saved, isUpdate, totalScore, surveyNorm, scenarioNorm, testerName, testerContact } = state
+  const {
+    certDocs, saved, isUpdate,
+    totalScore, surveyNorm, scenarioNorm,
+    testerName, testerContact, testerJobSeeking, testerPreferredRegion,
+  } = state
 
-  // isUpdate 시 기존 결과에서 복원된 이름·연락처로 초기화
+  // isUpdate 시 기존 결과에서 복원된 값으로 초기화 (BUG-01)
   const [name, setName] = useState(testerName)
   const [contact, setContact] = useState(testerContact)
-  const [jobSeeking, setJobSeeking] = useState('')
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [jobSeeking, setJobSeeking] = useState(testerJobSeeking)
+  const [selectedRegions, setSelectedRegions] = useState<string[]>(testerPreferredRegion)
   const [savedExpiresAt, setSavedExpiresAt] = useState('')
   const [savedTestId, setSavedTestId] = useState<string | null>(null)
   // isUpdate 시 업데이트 폼은 기본 접힘 상태

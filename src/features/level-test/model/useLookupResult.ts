@@ -40,22 +40,19 @@ export function useLookupResult() {
 
     try {
       const normalizedContact = normalizeContact(contact)
+      // phone 컬럼을 DB에서 직접 필터 — 클라이언트 전체 스캔 제거 (SEC-02)
       const { data, error } = await supabase
         .from('test_results')
         .select('raw_data')
         .ilike('name', `%${name.trim()}%`)
+        .eq('phone', normalizedContact)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      // 연락처 숫자 완전 일치로 동명이인 구분
       const found = (data || [])
         .map((row) => row.raw_data as ExistingResult)
-        .filter(
-          (r) =>
-            r &&
-            normalizeContact(r.tester?.contact) === normalizedContact
-        )
+        .filter(Boolean)
 
       setLookupState({ isLoading: false, results: found, error: null, searched: true })
     } catch (e) {

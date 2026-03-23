@@ -5,8 +5,7 @@
 // ═══════════════════════════════════════════════════
 import type { Metadata } from 'next'
 import { ProfilePageClient } from '@/features/profile'
-
-const BASE_URL = 'https://backup-family.vercel.app'
+import { BASE_URL } from '@/shared/lib/constants'
 
 interface Props {
   params: Promise<{ testId: string }>

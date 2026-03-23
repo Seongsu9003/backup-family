@@ -3,8 +3,7 @@ import { Providers } from './providers'
 // @fontsource-variable: 빌드 타임에 폰트를 자체 호스팅 → 외부 CDN 요청 제거, CLS 방지
 import '@fontsource-variable/noto-sans-kr'
 import './globals.css'
-
-const BASE_URL = 'https://backup-family.vercel.app'
+import { BASE_URL } from '@/shared/lib/constants'
 
 export const metadata: Metadata = {
   title: {

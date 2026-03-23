@@ -32,9 +32,11 @@ export interface QuizState {
   saved: boolean
   isUpdate: boolean         // 기존 결과 불러온 경우 재저장 허용
   certDocs: CertDocs
-  // 기존 결과 로드 시 복원 (공유 타이틀 등에 활용)
+  // 기존 결과 로드 시 복원 (공유 타이틀·수정 폼 초기값에 활용)
   testerName: string
   testerContact: string
+  testerJobSeeking: string        // isUpdate 시 폼 초기값 복원용
+  testerPreferredRegion: string[] // isUpdate 시 폼 초기값 복원용
 }
 
 export type QuizAction =
@@ -65,6 +67,8 @@ export const initialState: QuizState = {
   certDocs: { cert: null, edu: null, emergency: null },
   testerName: '',
   testerContact: '',
+  testerJobSeeking: '',
+  testerPreferredRegion: [],
 }
 
 export function quizReducer(state: QuizState, action: QuizAction): QuizState {
@@ -135,6 +139,8 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
         answers: (r.question_log || []).map((l) => l.chosen_idx),
         testerName: r.tester?.name ?? '',
         testerContact: r.tester?.contact ?? '',
+        testerJobSeeking: r.job_seeking ?? '',
+        testerPreferredRegion: r.tester?.preferred_region ?? [],
       }
     }
 

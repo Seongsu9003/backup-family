@@ -1,13 +1,6 @@
 // ═══════════════════════════════════════════════════
-//  /profile/* 공통 레이아웃
-//  OG 메타데이터는 app/profile/[testId]/page.tsx의 generateMetadata에서
-//  og:url 포함 완전한 형태로 설정 (CODE-03: dead code 제거)
+//  BUF 공통 상수
+//  BASE_URL 등 여러 파일에서 반복되는 값을 한 곳에서 관리합니다.
 // ═══════════════════════════════════════════════════
 
-export default function ProfileLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return <>{children}</>
-}
+export const BASE_URL = 'https://backup-family.vercel.app'
