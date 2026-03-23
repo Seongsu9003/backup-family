@@ -1,13 +1,47 @@
 // ═══════════════════════════════════════════════════
 //  /profile/[testId] — 공개 돌봄이 프로필 페이지
-//  OG 메타데이터: 상위 app/profile/layout.tsx 에서 정적 설정
+//  generateMetadata: Supabase 미호출 (params만 await) → 크롤러 타이밍 안전
+//  og:url을 각 프로필 URL로 명시 → Kakao 링크 클릭 정상 작동
 // ═══════════════════════════════════════════════════
+import type { Metadata } from 'next'
 import { ProfilePageClient } from '@/features/profile'
 
 const BASE_URL = 'https://backup-family.vercel.app'
 
 interface Props {
   params: Promise<{ testId: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { testId } = await params
+  const profileUrl = `${BASE_URL}/profile/${testId}`
+  const ogImage = `${BASE_URL}/og-kakao.png`
+
+  return {
+    title: '백업패밀리 돌봄이의 프로필이에요.',
+    description: '가족의 돌봄 공백을 채워드려요.',
+    openGraph: {
+      type: 'website',
+      siteName: 'backup-family',
+      title: '백업패밀리 돌봄이의 프로필이에요.',
+      description: '가족의 돌봄 공백을 채워드려요.',
+      url: profileUrl,          // ← og:url = 각 프로필 고유 URL
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 600,
+          alt: 'backup-family 돌봄이 인증 프로필',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: '백업패밀리 돌봄이의 프로필이에요.',
+      description: '가족의 돌봄 공백을 채워드려요.',
+      images: [ogImage],
+    },
+  }
 }
 
 export default async function ProfilePage({ params }: Props) {
