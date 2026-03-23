@@ -1,18 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { signIn } from '../model/useAdminAuth'
-import type { Session } from '@supabase/supabase-js'
 
-interface Props {
-  onLogin: (session: Session) => void
+// ─── SEC-03: 로그인 성공 시 서버사이드 세션 쿠키를 설정합니다 ───
+async function setSessionCookie(): Promise<void> {
+  await fetch('/api/admin/session', { method: 'POST' })
 }
 
-export function LoginScreen({ onLogin }: Props) {
-  const [email,     setEmail]     = useState('')
-  const [pw,        setPw]        = useState('')
-  const [error,     setError]     = useState<string | null>(null)
-  const [loading,   setLoading]   = useState(false)
+export function LoginScreen() {
+  const router                          = useRouter()
+  const [email,     setEmail]           = useState('')
+  const [pw,        setPw]              = useState('')
+  const [error,     setError]           = useState<string | null>(null)
+  const [loading,   setLoading]         = useState(false)
 
   const submit = async () => {
     setError(null)
@@ -20,14 +22,15 @@ export function LoginScreen({ onLogin }: Props) {
 
     const { session, error: authError } = await signIn(email, pw)
 
-    setLoading(false)
-
     if (authError || !session) {
+      setLoading(false)
       setError(authError ?? '로그인에 실패했습니다.')
       return
     }
 
-    onLogin(session)
+    // 세션 쿠키 설정 후 관리자 대시보드로 이동
+    await setSessionCookie()
+    router.push('/admin')
   }
 
   return (

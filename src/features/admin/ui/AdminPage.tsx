@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { Session } from '@supabase/supabase-js'
 import type { TestResult } from '@/shared/types'
 import { useAdminResults } from '../model/useAdminResults'
 import { getTabResults, type TabKey } from '../model/types'
 import { getSession, signOut } from '../model/useAdminAuth'
-import { LoginScreen } from './LoginScreen'
 import { StatsDashboard } from './StatsDashboard'
 import { ResultsTable } from './ResultsTable'
 import { ResultModal } from './ResultModal'
@@ -46,36 +46,47 @@ function exportCSV(results: TestResult[], tab: TabKey) {
   a.click()
 }
 
+// ─── SEC-03: 로그아웃 시 서버사이드 세션 쿠키를 삭제합니다 ───
+async function clearSessionCookie(): Promise<void> {
+  await fetch('/api/admin/session', { method: 'DELETE' })
+}
+
 export function AdminPage() {
-  // Supabase 세션으로 인증 관리 (null = 미확인, false = 미인증, Session = 인증됨)
-  const [session,    setSession]    = useState<Session | null | false>(null)
-  const [activeTab,  setActiveTab]  = useState<TabKey>('all')
-  const [selected,   setSelected]   = useState<TestResult | null>(null)
+  const router = useRouter()
+
+  // Supabase 세션 (null = 확인 중, false = 미인증, Session = 인증됨)
+  // proxy.ts가 1차 서버사이드 가드, 여기서는 2차 클라이언트 가드를 담당합니다.
+  const [session,   setSession]  = useState<Session | null | false>(null)
+  const [activeTab, setActiveTab] = useState<TabKey>('all')
+  const [selected,  setSelected]  = useState<TestResult | null>(null)
 
   const { data: results = [], isLoading, refetch } = useAdminResults()
 
   // 마운트 시 기존 세션 복원
   useEffect(() => {
-    getSession().then((s) => setSession(s ?? false))
-  }, [])
+    getSession().then((s) => {
+      if (!s) {
+        // 세션 없음 → 쿠키도 지우고 로그인 페이지로 이동 (belt-and-suspenders)
+        clearSessionCookie().then(() => router.push('/admin/login'))
+      } else {
+        setSession(s)
+      }
+    })
+  }, [router])
 
   const handleLogout = async () => {
     await signOut()
-    setSession(false)
+    await clearSessionCookie()
+    router.push('/admin/login')
   }
 
-  // 세션 확인 전 (초기 로딩)
-  if (session === null) {
+  // 세션 확인 전 (초기 로딩) 또는 리다이렉트 진행 중
+  if (session === null || session === false) {
     return (
       <div className="min-h-screen bg-[#F7F5F3] flex items-center justify-center">
         <p className="text-[#8A8A8A] text-sm">인증 확인 중…</p>
       </div>
     )
-  }
-
-  // 미인증
-  if (session === false) {
-    return <LoginScreen onLogin={(s) => setSession(s)} />
   }
 
   // 인증됨

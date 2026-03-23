@@ -1,26 +1,48 @@
 // ═══════════════════════════════════════════════════
-//  Next.js Proxy (SEC-03) — Next.js 16에서 middleware → proxy로 변경
-//  /search 접근 시 buf_search_access 쿠키를 검증합니다.
-//  쿠키가 없거나 유효하지 않으면 /search/access로 리다이렉트합니다.
+//  Next.js Proxy — Next.js 16에서 middleware → proxy로 변경
+//
+//  [보호 경로]
+//  1. /search            → buf_search_access 쿠키 검증
+//                          없으면 /search/access 리다이렉트
+//
+//  2. /admin/*           → buf_admin_session 쿠키 검증 (SEC-03)
+//     (/admin/login 제외)  없으면 /admin/login 리다이렉트
 // ═══════════════════════════════════════════════════
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const COOKIE_NAME  = 'buf_search_access'
-const COOKIE_VALUE = 'granted'
+const SEARCH_COOKIE_NAME  = 'buf_search_access'
+const SEARCH_COOKIE_VALUE = 'granted'
+
+const ADMIN_COOKIE_NAME   = 'buf_admin_session'
+const ADMIN_COOKIE_VALUE  = 'granted'
 
 export function proxy(request: NextRequest) {
-  const cookie = request.cookies.get(COOKIE_NAME)
+  const { pathname } = request.nextUrl
 
-  if (cookie?.value !== COOKIE_VALUE) {
-    const accessUrl = new URL('/search/access', request.url)
-    return NextResponse.redirect(accessUrl)
+  // ── /search 보호 ────────────────────────────────
+  if (pathname === '/search') {
+    const cookie = request.cookies.get(SEARCH_COOKIE_NAME)
+    if (cookie?.value !== SEARCH_COOKIE_VALUE) {
+      return NextResponse.redirect(new URL('/search/access', request.url))
+    }
+  }
+
+  // ── /admin/* 보호 (/admin/login 제외) ───────────
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    const cookie = request.cookies.get(ADMIN_COOKIE_NAME)
+    if (cookie?.value !== ADMIN_COOKIE_VALUE) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  // /search 경로만 보호 (/search/access, /api/search/* 는 제외)
-  matcher: ['/search'],
+  matcher: [
+    '/search',
+    '/admin',
+    '/admin/:path*',
+  ],
 }

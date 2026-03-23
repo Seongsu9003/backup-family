@@ -86,7 +86,7 @@
 - ~~**[BUG-01]** `isUpdate` 시 `jobSeeking`/`selectedRegions` 미복원~~ → ✅ 해결
 - ~~**[CODE-01]** `BASE_URL` 여러 파일 하드코딩~~ → ✅ 해결
 - ~~**[TEST-01]** `buildResult`, `quizReducer` 테스트 미작성~~ → ✅ 해결
-- **[SEC-03]** `/admin` URL 보호가 클라이언트 사이드 전용 — `proxy.ts` 서버사이드 가드 추가 검토
+- ~~**[SEC-03]** `/admin` URL 보호가 클라이언트 사이드 전용~~ → ✅ `proxy.ts` 서버사이드 쿠키 가드 + `/admin/login` 분리
 
 ## 💬 소통 스타일
 - 간결하고 기술적인 톤을 유지하세요.
