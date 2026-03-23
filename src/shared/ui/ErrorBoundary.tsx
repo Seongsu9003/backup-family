@@ -27,7 +27,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // 추후 Sentry 등 외부 로깅으로 교체 가능
+    // Sentry로 에러 전송 (MON-01)
+    import('@sentry/nextjs').then(({ captureException }) => {
+      captureException(error, { extra: { componentStack: info.componentStack } })
+    })
     console.error('[ErrorBoundary]', error, info.componentStack)
   }
 
