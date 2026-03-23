@@ -253,6 +253,7 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
 
       {/* 서류 첨부 */}
       <DocAttach
+        testId={state.testId!}
         certifiableItems={certifiableItems}
         certDocs={certDocs}
         onSetDoc={onSetDoc}
