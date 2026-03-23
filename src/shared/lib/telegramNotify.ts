@@ -48,6 +48,27 @@ export async function sendTelegramMessage(text: string): Promise<void> {
 }
 
 /**
+ * 보호자 연결 요청 알림 메시지 포맷 및 전송
+ */
+export async function notifyContactRequest(params: {
+  caregiverName: string
+  profileUrl: string
+}): Promise<void> {
+  const { caregiverName, profileUrl } = params
+
+  const message = [
+    `📩 <b>돌봄이 연결 요청이 접수되었습니다</b>`,
+    ``,
+    `👤 돌봄이: <b>${caregiverName}</b>`,
+    `🔗 <a href="${profileUrl}">프로필 보기</a>`,
+    ``,
+    `보호자에게 연락하여 연결을 진행해 주세요.`,
+  ].join('\n')
+
+  await sendTelegramMessage(message)
+}
+
+/**
  * 새 인증 신청 알림 메시지 포맷 및 전송
  */
 export async function notifyNewResult(params: NotifyNewResultParams): Promise<void> {
