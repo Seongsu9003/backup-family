@@ -51,17 +51,31 @@ function TabBtn({ label, count, active, onClick }: TabBtnProps) {
 
 // ── ResultsTable ───────────────────────────────
 interface Props {
-  results: TestResult[]
-  activeTab: TabKey
-  onTabChange: (tab: TabKey) => void
-  onRowClick: (r: TestResult) => void
-  onExportCSV: () => void
+  results:         TestResult[]
+  activeTab:       TabKey
+  onTabChange:     (tab: TabKey) => void
+  onRowClick:      (r: TestResult) => void
+  onExportCSV:     () => void
+  // ── 일괄 처리 (OPS) ──
+  selectedIds:     Set<string>
+  onToggleSelect:  (testId: string) => void
+  onToggleAll:     (ids: string[]) => void
+  onBulkCertify:   () => void
+  isBulkLoading:   boolean
 }
 
 const ALL_TABS: TabKey[] = ['all','pending','certified','uncertified','rejected','job_pool','expiring']
 
-export function ResultsTable({ results, activeTab, onTabChange, onRowClick, onExportCSV }: Props) {
-  const tabResults = getTabResults(results, activeTab)
+export function ResultsTable({
+  results, activeTab, onTabChange, onRowClick, onExportCSV,
+  selectedIds, onToggleSelect, onToggleAll, onBulkCertify, isBulkLoading,
+}: Props) {
+  const tabResults    = getTabResults(results, activeTab)
+  const tabIds        = tabResults.map((r) => r.meta.test_id)
+  const selectedCount = selectedIds.size
+  // 현재 탭 기준 전체 선택 여부
+  const allChecked    = tabIds.length > 0 && tabIds.every((id) => selectedIds.has(id))
+  const someChecked   = !allChecked && tabIds.some((id) => selectedIds.has(id))
 
   return (
     <div className="bg-white border border-[#E4E0DC] rounded-2xl overflow-hidden">
@@ -79,7 +93,7 @@ export function ResultsTable({ results, activeTab, onTabChange, onRowClick, onEx
         ))}
       </div>
 
-      {/* 테이블 헤더 + 검색 + CSV */}
+      {/* 테이블 헤더 행 */}
       <div className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap border-b border-[#E4E0DC]">
         <h2 className="text-[.95rem] font-bold text-[#1A1A1A]">{TAB_LABELS[activeTab]}</h2>
         <div className="flex items-center gap-2 ml-auto">
@@ -92,6 +106,28 @@ export function ResultsTable({ results, activeTab, onTabChange, onRowClick, onEx
         </div>
       </div>
 
+      {/* ── 일괄 처리 액션 바 (선택 시 표시) ── */}
+      {selectedCount > 0 && (
+        <div className="px-6 py-3 bg-[#FFF8F6] border-b border-[#F5D5CC] flex items-center gap-3">
+          <span className="text-[.83rem] font-semibold text-[#D85A3A]">
+            {selectedCount}건 선택됨
+          </span>
+          <button
+            onClick={onBulkCertify}
+            disabled={isBulkLoading}
+            className="px-4 py-1.5 bg-[#D85A3A] text-white text-[.8rem] font-bold rounded-lg hover:bg-[#C04830] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isBulkLoading ? '처리 중…' : '일괄 인증완료'}
+          </button>
+          <button
+            onClick={() => onToggleAll([])}
+            className="px-3 py-1.5 text-[.8rem] font-semibold border border-[#E4E0DC] rounded-lg text-[#8A8A8A] hover:text-[#4A4A4A] transition-colors"
+          >
+            선택 해제
+          </button>
+        </div>
+      )}
+
       {/* 테이블 */}
       {tabResults.length === 0 ? (
         <div className="py-16 text-center text-[#8A8A8A] text-sm">해당하는 데이터가 없습니다.</div>
@@ -100,6 +136,17 @@ export function ResultsTable({ results, activeTab, onTabChange, onRowClick, onEx
           <table className="w-full text-[.83rem]">
             <thead>
               <tr className="bg-[#F7F5F3] text-[#8A8A8A] text-[.72rem] font-bold uppercase tracking-wide">
+                {/* 전체 선택 체크박스 */}
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allChecked}
+                    ref={(el) => { if (el) el.indeterminate = someChecked }}
+                    onChange={() => onToggleAll(allChecked ? [] : tabIds)}
+                    className="w-4 h-4 accent-[#D85A3A] cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </th>
                 {['이름','레벨','총점','인증 상태','구직 여부','돌봄 타입','선호 지역','서류','테스트 일자','만료일'].map(h => (
                   <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>
                 ))}
@@ -107,18 +154,29 @@ export function ResultsTable({ results, activeTab, onTabChange, onRowClick, onEx
             </thead>
             <tbody>
               {tabResults.map((r) => {
-                const expired  = isExpired(r)
-                const expiring = isExpiringSoon(r)
-                const expColor = expired ? 'text-red-600' : expiring ? 'text-[#E65100]' : 'text-[#4A4A4A]'
-                const regions  = r.tester?.preferred_region || []
-                const docsLen  = r.certification?.docs_attached?.length || 0
+                const expired   = isExpired(r)
+                const expiring  = isExpiringSoon(r)
+                const expColor  = expired ? 'text-red-600' : expiring ? 'text-[#E65100]' : 'text-[#4A4A4A]'
+                const regions   = r.tester?.preferred_region || []
+                const docsLen   = r.certification?.docs_attached?.length || 0
+                const isChecked = selectedIds.has(r.meta.test_id)
 
                 return (
                   <tr
                     key={r.meta.test_id}
                     onClick={() => onRowClick(r)}
-                    className="border-t border-[#F0EDE9] hover:bg-[#FAFAF9] cursor-pointer transition-colors"
+                    className={`border-t border-[#F0EDE9] cursor-pointer transition-colors
+                      ${isChecked ? 'bg-[#FFF8F6]' : 'hover:bg-[#FAFAF9]'}`}
                   >
+                    {/* 행 체크박스 */}
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => onToggleSelect(r.meta.test_id)}
+                        className="w-4 h-4 accent-[#D85A3A] cursor-pointer"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-[#1A1A1A]">{r.tester?.name || '익명'}</div>
                       <div className="text-[.72rem] text-[#8A8A8A]">{r.tester?.contact || ''}</div>

@@ -8,6 +8,7 @@ import type { TestResult } from '@/shared/types'
 import { useAdminResults } from '../model/useAdminResults'
 import { getTabResults, type TabKey } from '../model/types'
 import { getSession, signOut } from '../model/useAdminAuth'
+import { useBulkSetStatus } from '../model/useBulkSetStatus'
 import { StatsDashboard } from './StatsDashboard'
 import { ResultsTable } from './ResultsTable'
 import { ResultModal } from './ResultModal'
@@ -56,11 +57,14 @@ export function AdminPage() {
 
   // Supabase 세션 (null = 확인 중, false = 미인증, Session = 인증됨)
   // proxy.ts가 1차 서버사이드 가드, 여기서는 2차 클라이언트 가드를 담당합니다.
-  const [session,   setSession]  = useState<Session | null | false>(null)
-  const [activeTab, setActiveTab] = useState<TabKey>('all')
-  const [selected,  setSelected]  = useState<TestResult | null>(null)
+  const [session,     setSession]     = useState<Session | null | false>(null)
+  const [activeTab,   setActiveTab]   = useState<TabKey>('all')
+  const [selected,    setSelected]    = useState<TestResult | null>(null)
+  // ── 일괄 처리 선택 상태 (OPS) ──
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const { data: results = [], isLoading, refetch } = useAdminResults()
+  const bulkSetStatus = useBulkSetStatus()
 
   // 마운트 시 기존 세션 복원
   useEffect(() => {
@@ -78,6 +82,51 @@ export function AdminPage() {
     await signOut()
     await clearSessionCookie()
     router.push('/admin/login')
+  }
+
+  // ── 탭 변경 시 선택 초기화 ─────────────────────
+  const handleTabChange = (tab: TabKey) => {
+    setActiveTab(tab)
+    setSelectedIds(new Set())
+  }
+
+  // ── 단일 행 토글 ──────────────────────────────
+  const handleToggleSelect = (testId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(testId)) next.delete(testId)
+      else next.add(testId)
+      return next
+    })
+  }
+
+  // ── 전체 선택 / 전체 해제 ─────────────────────
+  // ids가 빈 배열이면 전체 해제, 아니면 해당 ids로 교체
+  const handleToggleAll = (ids: string[]) => {
+    setSelectedIds(new Set(ids))
+  }
+
+  // ── 일괄 인증완료 처리 ────────────────────────
+  const handleBulkCertify = async () => {
+    const targets = results.filter((r) => selectedIds.has(r.meta.test_id))
+    if (targets.length === 0) return
+
+    const confirmed = window.confirm(
+      `선택된 ${targets.length}건을 일괄 인증완료 처리하시겠습니까?`
+    )
+    if (!confirmed) return
+
+    try {
+      const { succeeded, failed } = await bulkSetStatus.mutateAsync(targets)
+      setSelectedIds(new Set())
+      if (failed > 0) {
+        alert(`처리 완료: ${succeeded}건 성공 / ${failed}건 실패\n실패 건은 개별 확인이 필요합니다.`)
+      } else {
+        alert(`${succeeded}건 인증완료 처리되었습니다.`)
+      }
+    } catch {
+      alert('일괄 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    }
   }
 
   // 세션 확인 전 (초기 로딩) 또는 리다이렉트 진행 중
@@ -130,9 +179,14 @@ export function AdminPage() {
             <ResultsTable
               results={results}
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
               onRowClick={setSelected}
               onExportCSV={() => exportCSV(results, activeTab)}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleAll={handleToggleAll}
+              onBulkCertify={handleBulkCertify}
+              isBulkLoading={bulkSetStatus.isPending}
             />
           </>
         )}
