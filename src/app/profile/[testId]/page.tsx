@@ -10,22 +10,29 @@ interface Props {
   params: Promise<{ testId: string }>
 }
 
+const OG_TITLE = '백업패밀리 돌봄이의 프로필이에요.'
+const OG_DESC  = '가족의 돌봄 공백을 채워드려요.'
+const OG_IMAGE = `${BASE_URL}/og-kakao.png`
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { testId } = await params
   const profileUrl = `${BASE_URL}/profile/${testId}`
 
   return {
-    title: '돌봄이 인증 프로필',
-    description: 'backup-family에서 인증받은 아이돌봄이의 레벨·역량 프로필입니다.',
+    title: OG_TITLE,
+    description: OG_DESC,
     openGraph: {
-      type: 'profile',
+      type: 'website',
       url: profileUrl,
-      title: '아이돌봄이 인증 프로필 | backup-family',
-      description: 'backup-family 레벨 테스트로 검증된 돌봄이 프로필입니다.',
+      title: OG_TITLE,
+      description: OG_DESC,
+      images: [{ url: OG_IMAGE, width: 1200, height: 600 }],
     },
     twitter: {
-      card: 'summary',
-      title: '아이돌봄이 인증 프로필 | backup-family',
+      card: 'summary_large_image',
+      title: OG_TITLE,
+      description: OG_DESC,
+      images: [OG_IMAGE],
     },
   }
 }
