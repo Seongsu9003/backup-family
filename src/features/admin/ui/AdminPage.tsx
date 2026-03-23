@@ -8,7 +8,7 @@ import { useAdminResults } from '../model/useAdminResults'
 import { getTabResults, type TabKey } from '../model/types'
 import { getSession, signOut } from '../model/useAdminAuth'
 import { LoginScreen } from './LoginScreen'
-import { StatsBar } from './StatsBar'
+import { StatsDashboard } from './StatsDashboard'
 import { ResultsTable } from './ResultsTable'
 import { ResultModal } from './ResultModal'
 
@@ -115,7 +115,7 @@ export function AdminPage() {
           <div className="py-20 text-center text-[#8A8A8A]">데이터 불러오는 중…</div>
         ) : (
           <>
-            <StatsBar results={results} />
+            <StatsDashboard results={results} />
             <ResultsTable
               results={results}
               activeTab={activeTab}
