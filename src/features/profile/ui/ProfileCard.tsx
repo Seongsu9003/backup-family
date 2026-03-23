@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════
 import { useState } from 'react'
 import type { TestResult } from '@/shared/types'
+import { maskName } from '@/shared/lib/maskName'
 import { ShareButtons } from './ShareButtons'
 import { ContactModal } from './ContactModal'
 
@@ -17,13 +18,6 @@ const CERT_STYLE: Record<string, { bg: string; border: string; text: string; lab
   '검토중':   { bg: '#FEFAED', border: '#E8C96A', text: '#9A6B00', label: '검토 중' },
   '미인증':   { bg: '#F5F5F4', border: '#CCC',    text: '#888',    label: '미인증' },
   '반려':     { bg: '#FFF0EE', border: '#F0A090', text: '#8A2020', label: '반려' },
-}
-
-/** 이름 마스킹: 홍길동 → 홍*동 */
-function maskName(name: string): string {
-  if (name.length <= 1) return name
-  if (name.length === 2) return name[0] + '*'
-  return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1]
 }
 
 interface Props {

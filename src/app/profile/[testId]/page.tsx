@@ -1,11 +1,14 @@
 // ═══════════════════════════════════════════════════
 //  /profile/[testId] — 공개 돌봄이 프로필 페이지
-//  generateMetadata: Supabase 미호출 (params만 await) → 크롤러 타이밍 안전
-//  og:url을 각 프로필 URL로 명시 → Kakao 링크 클릭 정상 작동
+//  generateMetadata: Supabase 조회 → 동적 OG 태그 (GRW-03)
+//  조회 실패 시 기본값 fallback → 크롤러/빌드에 영향 없음
 // ═══════════════════════════════════════════════════
 import type { Metadata } from 'next'
 import { ProfilePageClient } from '@/features/profile'
 import { BASE_URL } from '@/shared/lib/constants'
+import { supabase } from '@/shared/lib/supabase'
+import { maskName } from '@/shared/lib/maskName'
+import type { TestResult } from '@/shared/types'
 
 interface Props {
   params: Promise<{ testId: string }>
@@ -16,15 +19,45 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profileUrl = `${BASE_URL}/profile/${testId}`
   const ogImage = `${BASE_URL}/og-kakao.png`
 
+  // 기본값 (조회 실패 시 fallback)
+  let title = '백업패밀리 돌봄이의 프로필이에요.'
+  let description = '가족의 돌봄 공백을 채워드려요.'
+
+  try {
+    const { data } = await supabase
+      .from('test_results')
+      .select('raw_data')
+      .eq('test_id', testId)
+      .maybeSingle()
+
+    if (data?.raw_data) {
+      const p = data.raw_data as TestResult
+      const maskedName  = maskName(p.tester.name)
+      const certLabel   = p.certification.status === '인증완료' ? '✓ 인증완료' : p.certification.status
+      const careLabel   = p.care_type ? `${p.care_type.label}형` : null
+
+      title       = `${maskedName}님의 backup-family 돌봄이 프로필`
+      description = [
+        p.level.label,
+        careLabel,
+        certLabel,
+        `총점 ${p.score.total}점`,
+        '가족의 돌봄 공백을 채워드려요.',
+      ].filter(Boolean).join(' · ')
+    }
+  } catch {
+    // 조회 실패 시 기본값 유지 — 크롤러 흐름에 영향 없음
+  }
+
   return {
-    title: '백업패밀리 돌봄이의 프로필이에요.',
-    description: '가족의 돌봄 공백을 채워드려요.',
+    title,
+    description,
     openGraph: {
       type: 'website',
       siteName: 'backup-family',
-      title: '백업패밀리 돌봄이의 프로필이에요.',
-      description: '가족의 돌봄 공백을 채워드려요.',
-      url: profileUrl,          // ← og:url = 각 프로필 고유 URL
+      title,
+      description,
+      url: profileUrl,
       images: [
         {
           url: ogImage,
@@ -36,8 +69,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: '백업패밀리 돌봄이의 프로필이에요.',
-      description: '가족의 돌봄 공백을 채워드려요.',
+      title,
+      description,
       images: [ogImage],
     },
   }
