@@ -10,6 +10,7 @@ export interface AnonymizedCaregiver {
   certStatus: string
   regions: string[]
   score: number
+  jobSeeking: string       // 구직 상태 (필터 토글용)
 }
 
 export const TYPE_COLORS: Record<string, string> = {
@@ -33,6 +34,7 @@ export function anonymize(r: TestResult): AnonymizedCaregiver {
     certStatus:   r.certification?.status || '미인증',
     regions:      r.tester?.preferred_region || [],
     score:        r.score?.total || 0,
+    jobSeeking:   r.job_seeking || '',
   }
 }
 
