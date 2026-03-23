@@ -38,16 +38,28 @@ export function LevelTestPage() {
   return (
     <>
       {/* ── 헤더 ─────────────────────────────── */}
-      <header className="text-center mb-9">
-        <div className="inline-block text-[.72rem] font-bold tracking-[.12em] uppercase text-[#D85A3A] border-[1.5px] border-[#D85A3A] px-3 py-1 rounded-full mb-3.5">
-          돌봄이 · Level Test
+      <header className="w-full max-w-[640px] mb-9">
+        {/* 보호자 링크 — 우상단 */}
+        <div className="flex justify-end mb-3">
+          <a
+            href="/search"
+            className="inline-flex items-center gap-1.5 text-[.78rem] font-semibold text-[#4A9FCC] hover:text-[#2A7FAC] hover:underline transition-colors"
+          >
+            <span>🔍</span>
+            돌봄이 찾기 (보호자)
+          </a>
         </div>
-        <h1 className="text-[1.55rem] font-extrabold text-[#1A1A1A] tracking-[-0.02em] leading-[1.3]">
-          아이돌봄이 레벨 테스트
-        </h1>
-        <p className="text-[.88rem] text-[#8A8A8A] mt-1.5">
-          나의 돌봄 역량을 5단계로 진단해 드립니다
-        </p>
+        <div className="text-center">
+          <div className="inline-block text-[.72rem] font-bold tracking-[.12em] uppercase text-[#D85A3A] border-[1.5px] border-[#D85A3A] px-3 py-1 rounded-full mb-3.5">
+            돌봄이 · Level Test
+          </div>
+          <h1 className="text-[1.55rem] font-extrabold text-[#1A1A1A] tracking-[-0.02em] leading-[1.3]">
+            아이돌봄이 레벨 테스트
+          </h1>
+          <p className="text-[.88rem] text-[#8A8A8A] mt-1.5">
+            나의 돌봄 역량을 5단계로 진단해 드립니다
+          </p>
+        </div>
       </header>
 
       {/* ── 콘텐츠 ───────────────────────────── */}

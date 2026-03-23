@@ -51,6 +51,30 @@ export function IntroSection({ onStart, onLookup }: Props) {
           내 결과 이어보기
         </button>
       </div>
+
+      {/* ── 보호자 진입점 배너 ── */}
+      <a
+        href="/search"
+        className="mt-3 flex items-center justify-between px-5 py-4 bg-white border border-[#E4E0DC] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,.05)] hover:border-[#4A9FCC] hover:shadow-[0_4px_16px_rgba(74,159,204,.12)] transition-all group"
+      >
+        <div className="text-left">
+          <p className="text-[.76rem] font-semibold text-[#4A9FCC] uppercase tracking-wide mb-0.5">
+            보호자이신가요?
+          </p>
+          <p className="text-[.96rem] font-bold text-[#1A1A1A]">
+            인증된 돌봄이 찾기
+          </p>
+          <p className="text-[.78rem] text-[#8A8A8A] mt-0.5">
+            레벨·인증 여부·지역으로 필터해 검색하세요
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-1 ml-4">
+          <span className="text-[2rem]">🔍</span>
+          <span className="text-[.75rem] font-bold text-[#4A9FCC] group-hover:translate-x-0.5 transition-transform">
+            검색하기 →
+          </span>
+        </div>
+      </a>
     </section>
   )
 }

@@ -33,6 +33,8 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [savedExpiresAt, setSavedExpiresAt] = useState('')
   const [savedTestId, setSavedTestId] = useState<string | null>(null)
+  // isUpdate 시 업데이트 폼은 기본 접힘 상태
+  const [updateOpen, setUpdateOpen] = useState(false)
 
   const { mutate: saveResult, isPending: isSaving } = useSaveResult()
 
@@ -148,12 +150,31 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
         </div>
       )}
 
-      <h3 className="text-base font-bold text-[#1A1A1A] mb-1.5">
-        {isUpdate ? '결과 업데이트' : '결과 저장 및 인증 신청'}
-      </h3>
-      <p className="text-[.84rem] text-[#8A8A8A] mb-5 leading-[1.6]">
-        이름과 연락처를 입력하면 결과가 저장됩니다. 서류를 첨부하면 관리자 검토 후 인증 뱃지를 받을 수 있습니다.
-      </p>
+      {/* isUpdate 시 업데이트 폼 토글 헤더 */}
+      {isUpdate ? (
+        <button
+          onClick={() => setUpdateOpen((prev) => !prev)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border-[1.5px] border-[#E4E0DC] bg-[#F7F5F3] hover:border-[#D85A3A] hover:bg-[#FAE8E3] transition-all mb-1"
+        >
+          <span className="text-[.88rem] font-semibold text-[#4A4A4A]">
+            ✏️ 정보 수정 (이름·연락처·구직 관심 여부)
+          </span>
+          <span className="text-[#8A8A8A] text-[.82rem]">
+            {updateOpen ? '접기 ▲' : '펼치기 ▼'}
+          </span>
+        </button>
+      ) : (
+        <>
+          <h3 className="text-base font-bold text-[#1A1A1A] mb-1.5">결과 저장 및 인증 신청</h3>
+          <p className="text-[.84rem] text-[#8A8A8A] mb-5 leading-[1.6]">
+            이름과 연락처를 입력하면 결과가 저장됩니다. 서류를 첨부하면 관리자 검토 후 인증 뱃지를 받을 수 있습니다.
+          </p>
+        </>
+      )}
+
+      {/* isUpdate 시 폼은 updateOpen일 때만 렌더링 */}
+      {isUpdate && !updateOpen ? null : (
+      <div className={isUpdate ? 'mt-4' : ''}>
 
       {/* 이름 */}
       <div className="flex flex-col gap-1 mb-3.5">
@@ -239,8 +260,11 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
         disabled={!canSave || isSaving}
         className="w-full py-3 text-[.95rem] font-bold bg-[#D85A3A] text-white rounded-xl hover:bg-[#C04830] disabled:opacity-40 disabled:cursor-not-allowed transition-colors mb-3"
       >
-        {isSaving ? '저장 중…' : '저장하기'}
+        {isSaving ? '저장 중…' : isUpdate ? '정보 업데이트' : '저장하기'}
       </button>
+
+      </div>
+      )}
     </div>
   )
 }
