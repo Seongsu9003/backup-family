@@ -1,7 +1,8 @@
 import type { TestResult } from '@/shared/types'
 
 export interface AnonymizedCaregiver {
-  _internalRef: string     // 내부 참조용 (화면 미노출)
+  _internalRef: string     // 내부 참조용 (화면 미노출) — test_id 뒷 6자리
+  _testId: string          // 관리자 알림용 내부 ID (화면 미노출)
   maskedName: string       // 성OO
   avatarLetter: string
   level: TestResult['level']
@@ -24,6 +25,7 @@ export function anonymize(r: TestResult): AnonymizedCaregiver {
   const name = r.tester?.name || '응시자'
   return {
     _internalRef: (r.meta?.test_id || '').slice(-6),
+    _testId:      r.meta?.test_id || '',
     maskedName:   name.length > 0 ? name[0] + 'OO' : '돌봄이',
     avatarLetter: name[0] || '돌',
     level:        r.level,

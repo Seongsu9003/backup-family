@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════
 import { useState } from 'react'
 import { AnonymizedCaregiver, scoreRange } from '../model/types'
+import { BASE_URL } from '@/shared/lib/constants'
 
 type RequestState = 'idle' | 'sending' | 'done' | 'error'
 
@@ -25,9 +26,10 @@ export function InquireModal({ caregiver: c, onClose }: Props) {
   const certLabel  = c.certStatus === '인증완료' ? '인증 완료' : c.certStatus
   const regionText = c.regions.length ? c.regions.join(' · ') : '미등록'
 
-  // 텔레그램 알림에 포함될 돌봄이 요약 (익명)
+  // 텔레그램 알림에 포함될 돌봄이 요약 (익명) + 관리자용 프로필 링크
   const caregiverSummary =
     `${c.level?.label || '-'} · ${typeLabel} · ${scoreRange(c.score)} · ${regionText} · ${certLabel}`
+  const profileUrl = c._testId ? `${BASE_URL}/profile/${c._testId}` : undefined
 
   const canRequest = parentContact.trim() !== ''
 
@@ -39,8 +41,9 @@ export function InquireModal({ caregiver: c, onClose }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          caregiverName: '익명 돌봄이 (검색 페이지)',
+          caregiverName: `${c.maskedName} 돌봄이 (검색 페이지)`,
           caregiverSummary,
+          profileUrl,
           parentName: parentName.trim() || '미입력',
           parentContact: parentContact.trim(),
         }),
