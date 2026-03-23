@@ -5,6 +5,7 @@ import {
   TabKey, TAB_LABELS, getTabResults,
   isExpired, isExpiringSoon, fmtDate,
 } from '../model/types'
+import { usePagination, PAGE_SIZE } from '../model/usePagination'
 
 // ── 뱃지 헬퍼 ─────────────────────────────────
 const CERT_STYLE: Record<string, string> = {
@@ -66,6 +67,29 @@ interface Props {
 
 const ALL_TABS: TabKey[] = ['all','pending','certified','uncertified','rejected','job_pool','expiring']
 
+// ── 페이지 버튼 ───────────────────────────────
+interface PageBtnProps {
+  label:    string
+  onClick:  () => void
+  disabled: boolean
+  active?:  boolean
+}
+function PageBtn({ label, onClick, disabled, active }: PageBtnProps) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`min-w-[2rem] px-2 py-1 text-[.78rem] font-semibold rounded-lg border transition-colors
+        ${active
+          ? 'border-[#D85A3A] bg-[#D85A3A] text-white'
+          : 'border-[#E4E0DC] text-[#4A4A4A] hover:border-[#D85A3A] hover:text-[#D85A3A]'}
+        disabled:opacity-40 disabled:cursor-not-allowed`}
+    >
+      {label}
+    </button>
+  )
+}
+
 export function ResultsTable({
   results, activeTab, onTabChange, onRowClick, onExportCSV,
   selectedIds, onToggleSelect, onToggleAll, onBulkCertify, isBulkLoading,
@@ -73,9 +97,20 @@ export function ResultsTable({
   const tabResults    = getTabResults(results, activeTab)
   const tabIds        = tabResults.map((r) => r.meta.test_id)
   const selectedCount = selectedIds.size
-  // 현재 탭 기준 전체 선택 여부
-  const allChecked    = tabIds.length > 0 && tabIds.every((id) => selectedIds.has(id))
-  const someChecked   = !allChecked && tabIds.some((id) => selectedIds.has(id))
+
+  // ── 페이지네이션 (tabResults 기준) ────────────
+  const { page, totalPages, pageItems, setPage } = usePagination(tabResults)
+
+  // 현재 탭 기준 전체 선택 여부 (전체 탭 행 기준, 현재 페이지 아님)
+  const allChecked  = tabIds.length > 0 && tabIds.every((id) => selectedIds.has(id))
+  const someChecked = !allChecked && tabIds.some((id) => selectedIds.has(id))
+
+  // 페이지 범위 계산 (최대 5개 번호 표시)
+  const pageNumbers: number[] = []
+  const delta = 2
+  const start = Math.max(1, page - delta)
+  const end   = Math.min(totalPages, page + delta)
+  for (let i = start; i <= end; i++) pageNumbers.push(i)
 
   return (
     <div className="bg-white border border-[#E4E0DC] rounded-2xl overflow-hidden">
@@ -153,7 +188,7 @@ export function ResultsTable({
               </tr>
             </thead>
             <tbody>
-              {tabResults.map((r) => {
+              {pageItems.map((r) => {
                 const expired   = isExpired(r)
                 const expiring  = isExpiringSoon(r)
                 const expColor  = expired ? 'text-red-600' : expiring ? 'text-[#E65100]' : 'text-[#4A4A4A]'
@@ -225,6 +260,49 @@ export function ResultsTable({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── 페이지네이션 푸터 ── */}
+      {totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-[#F0EDE9] flex items-center justify-between gap-4 flex-wrap">
+          {/* 좌측: 총 건수 안내 */}
+          <span className="text-[.78rem] text-[#8A8A8A]">
+            총 {tabResults.length}건 · 페이지당 {PAGE_SIZE}건
+          </span>
+
+          {/* 우측: 페이지 버튼 */}
+          <div className="flex items-center gap-1">
+            <PageBtn label="«" onClick={() => setPage(1)}         disabled={page === 1} />
+            <PageBtn label="‹" onClick={() => setPage(page - 1)} disabled={page === 1} />
+
+            {start > 1 && (
+              <>
+                <PageBtn label="1" onClick={() => setPage(1)} disabled={false} />
+                {start > 2 && <span className="px-1 text-[#AAAAAA] text-[.78rem]">…</span>}
+              </>
+            )}
+
+            {pageNumbers.map((n) => (
+              <PageBtn
+                key={n}
+                label={String(n)}
+                onClick={() => setPage(n)}
+                disabled={false}
+                active={n === page}
+              />
+            ))}
+
+            {end < totalPages && (
+              <>
+                {end < totalPages - 1 && <span className="px-1 text-[#AAAAAA] text-[.78rem]">…</span>}
+                <PageBtn label={String(totalPages)} onClick={() => setPage(totalPages)} disabled={false} />
+              </>
+            )}
+
+            <PageBtn label="›" onClick={() => setPage(page + 1)} disabled={page === totalPages} />
+            <PageBtn label="»" onClick={() => setPage(totalPages)} disabled={page === totalPages} />
+          </div>
         </div>
       )}
     </div>
