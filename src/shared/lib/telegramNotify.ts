@@ -53,16 +53,21 @@ export async function sendTelegramMessage(text: string): Promise<void> {
 export async function notifyContactRequest(params: {
   caregiverName: string
   profileUrl: string
+  parentName: string
+  parentContact: string
 }): Promise<void> {
-  const { caregiverName, profileUrl } = params
+  const { caregiverName, profileUrl, parentName, parentContact } = params
 
   const message = [
     `📩 <b>돌봄이 연결 요청이 접수되었습니다</b>`,
     ``,
-    `👤 돌봄이: <b>${caregiverName}</b>`,
+    `👶 보호자 이름: <b>${parentName}</b>`,
+    `📞 보호자 연락처: <b>${parentContact}</b>`,
+    ``,
+    `👤 요청 돌봄이: <b>${caregiverName}</b>`,
     `🔗 <a href="${profileUrl}">프로필 보기</a>`,
     ``,
-    `보호자에게 연락하여 연결을 진행해 주세요.`,
+    `✅ 돌봄이 스케줄 확인 후 보호자에게 연락해 주세요.`,
   ].join('\n')
 
   await sendTelegramMessage(message)

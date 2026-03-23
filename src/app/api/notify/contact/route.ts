@@ -7,16 +7,18 @@ import { notifyContactRequest } from '@/shared/lib/telegramNotify'
 
 export async function POST(request: NextRequest) {
   try {
-    const { caregiverName, profileUrl } = await request.json() as {
+    const { caregiverName, profileUrl, parentName, parentContact } = await request.json() as {
       caregiverName: string
       profileUrl: string
+      parentName: string
+      parentContact: string
     }
 
-    if (!caregiverName || !profileUrl) {
+    if (!caregiverName || !profileUrl || !parentContact) {
       return NextResponse.json({ error: '필수 필드 누락' }, { status: 400 })
     }
 
-    await notifyContactRequest({ caregiverName, profileUrl })
+    await notifyContactRequest({ caregiverName, profileUrl, parentName, parentContact })
 
     return NextResponse.json({ ok: true })
   } catch (err) {

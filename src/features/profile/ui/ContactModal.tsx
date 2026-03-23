@@ -17,24 +17,25 @@ interface Props {
 }
 
 export function ContactModal({ caregiverName, profileUrl, onClose }: Props) {
-  const [copied, setCopied] = useState(false)
-  const [reqState, setReqState] = useState<RequestState>('idle')
+  const [parentName, setParentName]       = useState('')
+  const [parentContact, setParentContact] = useState('')
+  const [reqState, setReqState]           = useState<RequestState>('idle')
 
-  const copyUrl = async () => {
-    try { await navigator.clipboard.writeText(profileUrl) }
-    catch { /* fallback 생략 */ }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const canRequest = parentContact.trim() !== ''
 
   const handleRequest = async () => {
-    if (reqState !== 'idle') return
+    if (!canRequest || reqState !== 'idle') return
     setReqState('sending')
     try {
       await fetch('/api/notify/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caregiverName, profileUrl }),
+        body: JSON.stringify({
+          caregiverName,
+          profileUrl,
+          parentName: parentName.trim() || '미입력',
+          parentContact: parentContact.trim(),
+        }),
       })
       setReqState('done')
     } catch {
@@ -66,8 +67,8 @@ export function ContactModal({ caregiverName, profileUrl, onClose }: Props) {
               <div className="text-4xl mb-3">✅</div>
               <p className="text-[.95rem] font-bold text-[#1A1A1A] mb-2">연결 요청이 접수되었습니다</p>
               <p className="text-[.82rem] text-[#8A8A8A] leading-relaxed mb-6">
-                운영팀이 확인 후 <strong>{caregiverName}</strong> 님께 연결 의향을 확인하고
-                연락처를 안내해 드립니다.
+                운영팀이 확인 후 <strong>{caregiverName}</strong> 님의 연결 의향을 확인하고
+                입력하신 연락처로 안내해 드립니다.
               </p>
               <button
                 onClick={onClose}
@@ -77,53 +78,67 @@ export function ContactModal({ caregiverName, profileUrl, onClose }: Props) {
               </button>
             </div>
           ) : (
-            /* ── 기본 뷰 ── */
+            /* ── 입력 폼 뷰 ── */
             <>
-              <p className="text-[.84rem] text-[#4A4A4A] leading-relaxed mb-4">
-                버튼을 누르면 운영팀에 연결 요청이 전달됩니다.
-                해당 돌봄이에게 연결 의향을 확인 후 연락처를 안내해 드립니다.
+              <p className="text-[.83rem] text-[#4A4A4A] leading-relaxed mb-4">
+                운영팀이 연락드릴 수 있도록 연락처를 남겨주세요.
+                돌봄이의 연결 의향 확인 후 안내해 드립니다.
               </p>
 
-              {/* 운영팀 직접 연락 */}
-              <div className="bg-[#F7F5F3] rounded-lg px-4 py-3 text-[.78rem] text-[#8A8A8A] text-center mb-4">
-                직접 문의: <strong className="text-[#4A4A4A]">hello@backup-family.com</strong>
-                <span className="mx-1.5">·</span>
-                카카오채널 <strong className="text-[#4A4A4A]">@backup-family</strong>
+              {/* 보호자 이름 */}
+              <div className="flex flex-col gap-1 mb-3">
+                <label className="text-[.8rem] font-semibold text-[#4A4A4A]">
+                  이름 <span className="text-[#8A8A8A] font-normal">(선택)</span>
+                </label>
+                <input
+                  type="text"
+                  value={parentName}
+                  onChange={(e) => setParentName(e.target.value)}
+                  placeholder="홍길동"
+                  className="px-3 py-2.5 border-[1.5px] border-[#E4E0DC] rounded-lg text-[.88rem] bg-[#FAFAFA] outline-none focus:border-[#D85A3A] transition-colors"
+                />
               </div>
 
-              {/* 프로필 링크 */}
-              <div className="bg-[#F7F5F3] rounded-lg px-4 py-3 mb-5">
-                <p className="text-[.72rem] text-[#8A8A8A] mb-1">이 돌봄이의 프로필 링크</p>
-                <p className="text-[.78rem] font-semibold text-[#D85A3A] truncate">{profileUrl}</p>
+              {/* 보호자 연락처 */}
+              <div className="flex flex-col gap-1 mb-5">
+                <label className="text-[.8rem] font-semibold text-[#4A4A4A]">
+                  연락처 <span className="text-[#D85A3A]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={parentContact}
+                  onChange={(e) => setParentContact(e.target.value)}
+                  placeholder="010-0000-0000 또는 이메일"
+                  className="px-3 py-2.5 border-[1.5px] border-[#E4E0DC] rounded-lg text-[.88rem] bg-[#FAFAFA] outline-none focus:border-[#D85A3A] transition-colors"
+                />
+                <span className="text-[.74rem] text-[#8A8A8A]">운영팀이 이 연락처로 연락드립니다.</span>
               </div>
 
               {/* 버튼 */}
               <button
                 onClick={handleRequest}
-                disabled={reqState === 'sending'}
-                className="w-full py-3 rounded-lg bg-[#D85A3A] text-white text-[.9rem] font-bold hover:bg-[#C04830] disabled:opacity-50 transition-colors mb-2.5"
+                disabled={!canRequest || reqState === 'sending'}
+                className="w-full py-3 rounded-lg bg-[#D85A3A] text-white text-[.9rem] font-bold hover:bg-[#C04830] disabled:opacity-40 disabled:cursor-not-allowed transition-colors mb-2.5"
               >
                 {reqState === 'sending' ? '요청 중…' : '운영팀에 연결 요청하기'}
               </button>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  onClick={copyUrl}
-                  className="py-2.5 rounded-lg border-[1.5px] border-[#E4E0DC] text-[#4A4A4A] text-[.84rem] font-bold hover:border-[#F0A090] hover:text-[#D85A3A] transition-colors"
-                >
-                  {copied ? '복사 완료!' : '링크 복사'}
-                </button>
-                <button
-                  onClick={onClose}
-                  className="py-2.5 rounded-lg border-[1.5px] border-[#E4E0DC] text-[#4A4A4A] text-[.84rem] font-bold hover:border-[#E4E0DC] transition-colors"
-                >
-                  닫기
-                </button>
-              </div>
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 rounded-lg border-[1.5px] border-[#E4E0DC] text-[#4A4A4A] text-[.84rem] font-bold hover:border-[#D85A3A] hover:text-[#D85A3A] transition-colors"
+              >
+                닫기
+              </button>
+
               {reqState === 'error' && (
                 <p className="text-[.76rem] text-[#D85A3A] text-center mt-2">
-                  요청 전송에 실패했습니다. 직접 운영팀에 연락해 주세요.
+                  전송에 실패했습니다. hello@backup-family.com 으로 직접 문의해 주세요.
                 </p>
               )}
+
+              {/* 직접 문의 안내 */}
+              <p className="text-[.72rem] text-[#AAAAAA] text-center mt-3">
+                직접 문의: hello@backup-family.com · 카카오채널 @backup-family
+              </p>
             </>
           )}
         </div>
