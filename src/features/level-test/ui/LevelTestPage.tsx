@@ -3,20 +3,22 @@
 // ═══════════════════════════════════════════════════
 //  레벨 테스트 페이지 오케스트레이터
 // ═══════════════════════════════════════════════════
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLevelTest } from '../model/useLevelTest'
 import { useRetestPrefill } from '../model/useRetestPrefill'
 import { IntroSection } from './IntroSection'
 import { QuizSection } from './QuizSection'
 import { ResultSection } from './ResultSection'
 import { LookupModal } from './LookupModal'
+import { setPartnerCookie } from '@/shared/lib/partnerCookie'
 import type { ExistingResult } from '../model/types'
 
 interface Props {
-  retestId?: string
+  retestId?:    string
+  partnerCode?: string  // ?partner=BUF00001 유입 시 설정
 }
 
-export function LevelTestPage({ retestId }: Props) {
+export function LevelTestPage({ retestId, partnerCode }: Props) {
   const {
     state,
     startTest,
@@ -31,6 +33,11 @@ export function LevelTestPage({ retestId }: Props) {
   } = useLevelTest()
 
   const [lookupOpen, setLookupOpen] = useState(false)
+
+  // 파트너 유입 코드 → 30일 쿠키 저장 (BIZ)
+  useEffect(() => {
+    if (partnerCode) setPartnerCookie(partnerCode)
+  }, [partnerCode])
 
   // 재테스트 prefill — 만료 검증 + 이전 정보 자동 채우기 (BIZ-02)
   useRetestPrefill({ retestId, setRetestPrefill })

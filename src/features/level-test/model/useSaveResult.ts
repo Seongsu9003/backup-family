@@ -7,13 +7,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/lib/supabase'
 import { buildResult } from './buildResult'
+import { getPartnerCookie } from '@/shared/lib/partnerCookie'
 import type { SavePayload } from './buildResult'
 
 export type { SavePayload }
 
-function toDbRow(result: ReturnType<typeof buildResult>) {
+function toDbRow(result: ReturnType<typeof buildResult>, partnerCode: string | null) {
   return {
     test_id: result.meta.test_id,
+    partner_code: partnerCode ?? null,
     name: result.tester.name,
     phone: result.tester.contact,
     score_total: result.score.total,
@@ -40,10 +42,15 @@ export function useSaveResult() {
 
   return useMutation({
     mutationFn: async (payload: SavePayload) => {
-      const result = buildResult(payload)
+      const base        = buildResult(payload)
+      const partnerCode = getPartnerCookie()
+
+      // partner_code를 raw_data에도 포함해 일관성 유지 (spread로 불변성 보장)
+      const result = partnerCode ? { ...base, partner_code: partnerCode } : base
+
       const { error } = await supabase
         .from('test_results')
-        .upsert(toDbRow(result), { onConflict: 'test_id' })
+        .upsert(toDbRow(result, partnerCode), { onConflict: 'test_id' })
       if (error) throw error
 
       // 텔레그램 알림 발송 (실패해도 저장 흐름에 영향 없음)

@@ -10,6 +10,7 @@ import { getTabResults, type TabKey } from '../model/types'
 import { getSession, signOut } from '../model/useAdminAuth'
 import { useBulkSetStatus } from '../model/useBulkSetStatus'
 import { StatsDashboard } from './StatsDashboard'
+import { PartnerPanel } from './PartnerPanel'
 import { ResultsTable } from './ResultsTable'
 import { ResultModal } from './ResultModal'
 
@@ -176,6 +177,7 @@ export function AdminPage() {
         ) : (
           <>
             <StatsDashboard results={results} />
+            <PartnerPanel />
             <ResultsTable
               results={results}
               activeTab={activeTab}

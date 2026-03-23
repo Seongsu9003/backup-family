@@ -41,6 +41,18 @@ export interface MetaInfo {
   version: string
 }
 
+/** partners 테이블 행 */
+export interface Partner {
+  id:         string
+  seq:        number
+  code:       string   // BUF00001
+  name:       string
+  type:       'agency' | 'franchise' | 'direct'
+  is_active:  boolean
+  memo:       string
+  created_at: string
+}
+
 /** test_results 테이블의 raw_data 구조 */
 export interface TestResult {
   meta: MetaInfo
@@ -50,8 +62,9 @@ export interface TestResult {
   care_type: CareType | null
   job_seeking: string
   certification: Certification
-  scenario_ids: string[]
-  question_log: QuestionLog[]
+  scenario_ids:  string[]
+  question_log:  QuestionLog[]
+  partner_code?: string   // 파트너 유입 코드 (BUF00001 등, 없으면 undefined)
 }
 
 export interface QuestionLog {
