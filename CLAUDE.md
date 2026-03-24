@@ -102,6 +102,8 @@
 - ~~**[CODE-01]** `BASE_URL` 여러 파일 하드코딩~~ → ✅ 해결
 - ~~**[TEST-01]** `buildResult`, `quizReducer` 테스트 미작성~~ → ✅ 해결
 - ~~**[SEC-03]** `/admin` URL 보호가 클라이언트 사이드 전용~~ → ✅ `proxy.ts` 서버사이드 쿠키 가드 + `/admin/login` 분리
+- ~~**[SEC-04]** Supabase RLS 미적용~~ → ✅ `supabase/migrations/add_rls.sql` — `partners` anon 차단, `test_results` anon DELETE 차단
+- **[SEC-05]** `useSaveResult` upsert가 anon UPDATE 권한 필요 → 서버 API Route + service_role 키 이전 시 anon 쓰기 범위 최소화 가능 (선택적 개선)
 
 ## 💬 소통 스타일
 - 간결하고 기술적인 톤을 유지하세요.

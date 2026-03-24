@@ -110,9 +110,41 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 
 ---
 
+## 3. RLS (Row Level Security) 정책
+
+> **실행 위치:** Supabase Dashboard → SQL Editor → `supabase/migrations/add_rls.sql`
+
+### `test_results`
+
+| 정책명 | 대상 Role | 허용 작업 | 조건 |
+|--------|-----------|-----------|------|
+| `anon_select_test_results` | anon | SELECT | 전체 허용 (프로필·검색·조회 모두 anon 키 사용) |
+| `anon_insert_test_results` | anon | INSERT | 전체 허용 (신규 테스트 제출) |
+| `anon_update_test_results` | anon | UPDATE | 전체 허용 (upsert 재응시용, test_id UUID로 실질 보호) |
+| `authenticated_all_test_results` | authenticated | ALL | 전체 허용 (관리자 — Supabase Auth 로그인 후) |
+
+> **anon DELETE 는 정책 없음 → 자동 차단**
+
+### `partners`
+
+| 정책명 | 대상 Role | 허용 작업 | 조건 |
+|--------|-----------|-----------|------|
+| `authenticated_all_partners` | authenticated | ALL | 전체 허용 (관리자 전용) |
+
+> **anon은 partners 테이블에 어떠한 접근도 불가**
+
+### 향후 개선 사항
+
+- `useSaveResult` upsert를 서버 API Route(`/api/save`) + service_role 키로 이전하면
+  anon SELECT 전체 허용 대신 인증완료·구직 중 행만 공개하는 세밀한 정책 적용 가능
+- `useLookupResult`를 서버 API Route로 이전하면 anon SELECT 범위를 공개 프로필 전용으로 축소 가능
+
+---
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 |
 |------|-----------|
 | 2026-03-24 | 최초 작성 — `test_results`, `partners` 테이블 정의 |
 | 2026-03-24 | `test_results.partner_code` 컬럼 추가 (파트너 유입 추적) |
+| 2026-03-24 | RLS 정책 추가 — `test_results` (anon SELECT·INSERT·UPDATE, authenticated ALL), `partners` (authenticated ALL) |
