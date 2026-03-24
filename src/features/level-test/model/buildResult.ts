@@ -3,6 +3,7 @@
 //  useSaveResult.ts 에서 분리하여 단위 테스트 가능하게 함
 // ═══════════════════════════════════════════════════
 import { getLevel } from './constants'
+import { calcCertExpiry } from '@/shared/lib/dateUtils'
 import type { QuizState } from './types'
 import type { Question } from './constants'
 
@@ -21,14 +22,12 @@ export function buildResult(payload: SavePayload) {
   const certStatus = attachedDocs.length > 0 ? '검토중' : '미인증'
 
   const now = new Date()
-  const expires = new Date(now)
-  expires.setMonth(expires.getMonth() + 1)
 
   return {
     meta: {
       test_id: quizState.testId!,
       created_at: now.toISOString(),
-      expires_at: expires.toISOString(),
+      expires_at: calcCertExpiry(now),
       version: '1.3',
     },
     tester: {

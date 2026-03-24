@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/lib/supabase'
+import { calcCertExpiry } from '@/shared/lib/dateUtils'
 import type { TestResult } from '@/shared/types'
 import { ADMIN_QUERY_KEY } from './useAdminResults'
 
@@ -14,11 +15,17 @@ export function useSetStatus() {
 
   return useMutation({
     mutationFn: async ({ result, status, memo }: SetStatusInput) => {
-      const certifiedAt = status === '인증완료' ? new Date().toISOString() : null
+      const isCertified = status === '인증완료'
+      const certifiedAt = isCertified ? new Date().toISOString() : null
+      const certExpiry  = isCertified ? calcCertExpiry() : null
 
-      // raw_data도 최신 상태로 동기화
+      // raw_data도 최신 상태로 동기화 (meta.expires_at 포함)
       const updated: TestResult = {
         ...result,
+        meta: {
+          ...result.meta,
+          ...(isCertified ? { expires_at: certExpiry! } : {}),
+        },
         certification: {
           ...result.certification,
           status:       status as TestResult['certification']['status'],
@@ -33,6 +40,7 @@ export function useSetStatus() {
           cert_status : status,
           admin_memo  : memo,
           cert_issued : certifiedAt,
+          cert_expiry : certExpiry,
           raw_data    : updated,
         })
         .eq('test_id', result.meta.test_id)

@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/lib/supabase'
+import { calcCertExpiry } from '@/shared/lib/dateUtils'
 import type { TestResult } from '@/shared/types'
 import { ADMIN_QUERY_KEY } from './useAdminResults'
 
@@ -20,11 +21,16 @@ export function useBulkSetStatus() {
 
   return useMutation<BulkResult, Error, TestResult[]>({
     mutationFn: async (results: TestResult[]): Promise<BulkResult> => {
-      const now = new Date().toISOString()
+      const now       = new Date().toISOString()
+      const certExpiry = calcCertExpiry()
 
       const tasks = results.map(async (result) => {
         const updated: TestResult = {
           ...result,
+          meta: {
+            ...result.meta,
+            expires_at: certExpiry,
+          },
           certification: {
             ...result.certification,
             status:       TARGET_STATUS,
@@ -37,6 +43,7 @@ export function useBulkSetStatus() {
           .update({
             cert_status: TARGET_STATUS,
             cert_issued: now,
+            cert_expiry: certExpiry,
             raw_data:    updated,
           })
           .eq('test_id', result.meta.test_id)
