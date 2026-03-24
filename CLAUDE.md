@@ -5,12 +5,14 @@
 - **목적:** 돌봄인력 레벨 테스트 · 인증 · 구인 DB 구축
 - **배포:** https://backup-family.vercel.app
 - **주요 진입점:**
-  - `src/app/page.tsx` — 돌봄이 레벨 테스트 (메인)
-  - `src/app/admin/page.tsx` — 관리자 인증 관리 페이지
+  - `src/app/page.tsx` — 대문 (서비스 소개 랜딩 페이지)
+  - `src/app/test/page.tsx` — 돌봄이 레벨 테스트
   - `src/app/search/page.tsx` — 보호자용 돌봄이 조회 페이지
   - `src/app/profile/[testId]/page.tsx` — 공개 돌봄이 프로필 (OG 공유용)
   - `src/app/places/page.tsx` — 부모 동반 추천 장소 공개 페이지
+  - `src/app/admin/page.tsx` — 관리자 인증 관리 페이지
 - **FSD 레이어 구조:**
+  - `src/features/home/` — 대문 랜딩 페이지
   - `src/features/level-test/` — 레벨 테스트 기능 (model / ui)
   - `src/features/admin/` — 관리자 기능
   - `src/features/profile/` — 공개 프로필 페이지

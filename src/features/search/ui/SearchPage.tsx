@@ -136,7 +136,7 @@ export function SearchPage() {
             테스트 초대하기
           </button>
           <Link
-            href="/"
+            href="/test"
             className="text-[.8rem] text-white/80 px-3 py-1.5 border border-white/30 rounded-lg font-semibold hover:text-white hover:border-white/60 transition-colors"
           >
             레벨 테스트

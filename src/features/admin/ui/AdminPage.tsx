@@ -156,7 +156,7 @@ export function AdminPage() {
           <Link href="/places" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
             추천 장소 페이지
           </Link>
-          <Link href="/" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
+          <Link href="/test" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
             테스트 페이지
           </Link>
           <button

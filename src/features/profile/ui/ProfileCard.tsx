@@ -167,7 +167,7 @@ export function ProfileCard({ result, profileUrl }: Props) {
       <div className="mt-5 text-center">
         <p className="text-[.84rem] text-[#8A8A8A] mb-2">나도 레벨 테스트를 받아볼까요?</p>
         <a
-          href="/"
+          href="/test"
           className="inline-block px-6 py-2.5 border-[1.5px] border-[#D85A3A] rounded-xl text-[.88rem] font-bold text-[#D85A3A] hover:bg-[#FAE8E3] transition-colors"
         >
           무료 레벨 테스트 시작하기

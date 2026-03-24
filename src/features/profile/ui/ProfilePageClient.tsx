@@ -36,7 +36,7 @@ export function ProfilePageClient({ testId, profileUrl }: Props) {
           링크가 잘못되었거나 존재하지 않는 프로필입니다.
         </p>
         <a
-          href="/"
+          href="/test"
           className="mt-2 px-5 py-2.5 bg-[#D85A3A] text-white text-[.88rem] font-bold rounded-xl hover:bg-[#C04830] transition-colors"
         >
           레벨 테스트 시작하기
