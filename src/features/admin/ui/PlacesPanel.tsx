@@ -139,8 +139,9 @@ export function PlacesPanel() {
       setForm(EMPTY_FORM)
       setTagInput('')
       setActiveView('list')
-    } catch {
-      alert('등록 중 오류가 발생했습니다.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(`등록 중 오류가 발생했습니다.\n\n${msg}`)
     }
   }
 
@@ -186,8 +187,9 @@ export function PlacesPanel() {
       alert(`${count}건 등록 완료!`)
       setCsvRows([])
       setActiveView('list')
-    } catch {
-      alert('일괄 등록 중 오류가 발생했습니다.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(`일괄 등록 중 오류가 발생했습니다.\n\n${msg}`)
     }
   }
 
