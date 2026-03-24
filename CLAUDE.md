@@ -15,7 +15,8 @@
   - `src/features/profile/` — 공개 프로필 페이지
   - `src/features/search/` — 보호자용 돌봄이 검색
   - `src/shared/` — 공통 타입, lib, ui
-- **데이터 스토어:** Supabase (PostgreSQL) — `test_results` 테이블
+- **데이터 스토어:** Supabase (PostgreSQL) — `test_results`, `partners` 테이블
+- **DB 스키마 문서:** `DB_SCHEMA.md` (테이블 변경 시 반드시 동기화)
 - **기술 스택:** Next.js 16 (App Router), TypeScript, Tailwind CSS, Supabase JS v2, TanStack Query v5, Sentry v9
 
 ## 🗂 주요 데이터 흐름
@@ -79,6 +80,20 @@
 | `maskName.ts` | 이름 마스킹 유틸 (서버·클라이언트 공용) |
 | `telegramNotify.ts` | 텔레그램 봇 알림 전송 (서버 전용) |
 | `dateUtils.ts` | 날짜 포맷·만료 계산 유틸 |
+| `partnerCookie.ts` | 파트너 유입 코드 30일 쿠키 set/get |
+
+## 🗃 DB 스키마 관리 규칙
+
+> **이 규칙은 예외 없이 적용됩니다.**
+
+- **스키마 문서 위치:** `DB_SCHEMA.md` (프로젝트 루트)
+- **동기화 의무:** 아래 경우 반드시 `DB_SCHEMA.md`를 먼저 업데이트한 후 코드를 작성합니다.
+  - 새 테이블 생성
+  - 컬럼 추가 / 삭제 / 타입 변경
+  - 인덱스 · 제약 추가 / 삭제
+  - `supabase/migrations/` 에 새 SQL 파일 추가
+- **마이그레이션 파일:** `supabase/migrations/{설명}.sql` 형식으로 작성하고 git에 커밋합니다.
+- **변경 이력:** `DB_SCHEMA.md` 하단 "변경 이력" 테이블에 날짜와 내용을 기록합니다.
 
 ## 🐛 알려진 기술 부채
 - ~~**[SEC-01]** 관리자 인증이 클라이언트 사이드 전용~~ → ✅ Supabase Auth 적용
