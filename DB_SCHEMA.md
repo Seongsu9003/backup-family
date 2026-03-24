@@ -12,6 +12,7 @@
 |--------|------|
 | [`test_results`](#1-test_results) | 돌봄이 레벨 테스트 결과 저장 (메인) |
 | [`partners`](#2-partners) | 파트너 업체 코드 및 유입 채널 관리 |
+| [`parent_visitors`](#3-parent_visitors) | 보호자 방문자 이메일 수집 (검색 페이지 접근 기록) |
 
 ---
 
@@ -110,7 +111,34 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 
 ---
 
-## 3. RLS (Row Level Security) 정책
+## 3. `parent_visitors`
+
+보호자(`/search` 페이지 방문자)의 이메일과 방문 일시를 수집합니다.
+마케팅·리텐션 목적의 리드 데이터입니다.
+
+### 컬럼
+
+| 컬럼 | 타입 | Nullable | 기본값 | 설명 |
+|------|------|----------|--------|------|
+| `id` | int8 | NO | auto-increment | PK |
+| `email` | text | NO | — | 보호자 이메일 주소 |
+| `visited_at` | timestamptz | NO | `now()` | 방문(이메일 제출) 일시 |
+
+### 인덱스 / 제약
+
+| 이름 | 대상 | 비고 |
+|------|------|------|
+| `parent_visitors_pkey` | `id` | PK |
+
+### RLS
+
+- 기존 정책 1개 적용되어 있음 (Supabase 대시보드에서 확인 필요)
+- `anon` INSERT 허용 권장 (보호자가 이메일 제출 시 기록)
+- `authenticated` SELECT 허용 권장 (관리자 리드 조회)
+
+---
+
+## 4. RLS (Row Level Security) 정책
 
 > **실행 위치:** Supabase Dashboard → SQL Editor → `supabase/migrations/add_rls.sql`
 
@@ -148,3 +176,4 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 | 2026-03-24 | 최초 작성 — `test_results`, `partners` 테이블 정의 |
 | 2026-03-24 | `test_results.partner_code` 컬럼 추가 (파트너 유입 추적) |
 | 2026-03-24 | RLS 정책 추가 — `test_results` (anon SELECT·INSERT·UPDATE, authenticated ALL), `partners` (authenticated ALL) |
+| 2026-03-24 | `parent_visitors` 테이블 문서화 (id, email, visited_at) |

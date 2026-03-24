@@ -15,7 +15,7 @@
   - `src/features/profile/` — 공개 프로필 페이지
   - `src/features/search/` — 보호자용 돌봄이 검색
   - `src/shared/` — 공통 타입, lib, ui
-- **데이터 스토어:** Supabase (PostgreSQL) — `test_results`, `partners` 테이블
+- **데이터 스토어:** Supabase (PostgreSQL) — `test_results`, `partners`, `parent_visitors` 테이블
 - **DB 스키마 문서:** `DB_SCHEMA.md` (테이블 변경 시 반드시 동기화)
 - **기술 스택:** Next.js 16 (App Router), TypeScript, Tailwind CSS, Supabase JS v2, TanStack Query v5, Sentry v9
 
