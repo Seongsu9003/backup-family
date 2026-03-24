@@ -80,12 +80,18 @@ export type PlaceCategory = typeof PLACE_CATEGORIES[number]
 export interface Place {
   id:          string
   name:        string
-  description: string
+  region_1:    string         // 시/도 (예: 서울특별시)
+  region_2:    string         // 구/군 (예: 종로구)
   address:     string
   category:    PlaceCategory
-  tags:        string[]       // ['영유아', '무료', '평일추천']
-  hours:       string         // 운영시간 (예: 평일 09:00~18:00)
+  description: string         // 특화 분야 (specialty)
+  facilities:  string         // 시설 정보
+  hours:       string         // 운영시간 (opening_hours)
   closed_days: string         // 휴관일
+  parking:     string         // 주차 정보
+  phone:       string         // 전화번호
+  website:     string         // 홈페이지 URL
+  tags:        string[]       // 수동 태그 ['영유아', '무료', ...]
   is_free:     boolean
   image_url:   string
   is_active:   boolean

@@ -66,6 +66,13 @@ export function PlaceCard({ place }: Props) {
 
         {/* 상세 정보 */}
         <div className="flex flex-col gap-1 mt-auto pt-2 border-t border-[#F0F0F0]">
+          {/* 지역 */}
+          {(place.region_1 || place.region_2) && (
+            <div className="flex items-center gap-1.5 text-[.78rem] text-[#555]">
+              <span className="shrink-0">🗺️</span>
+              <span>{[place.region_1, place.region_2].filter(Boolean).join(' ')}</span>
+            </div>
+          )}
           {place.address && (
             <div className="flex items-start gap-1.5 text-[.78rem] text-[#555]">
               <span className="mt-[1px] shrink-0">📍</span>
@@ -82,6 +89,37 @@ export function PlaceCard({ place }: Props) {
             <div className="flex items-center gap-1.5 text-[.78rem] text-[#888]">
               <span className="shrink-0">🚫</span>
               <span>{place.closed_days} 휴관</span>
+            </div>
+          )}
+          {place.parking && (
+            <div className="flex items-center gap-1.5 text-[.78rem] text-[#555]">
+              <span className="shrink-0">🅿️</span>
+              <span>{place.parking}</span>
+            </div>
+          )}
+          {place.phone && (
+            <div className="flex items-center gap-1.5 text-[.78rem] text-[#555]">
+              <span className="shrink-0">📞</span>
+              <a href={`tel:${place.phone}`} className="hover:underline">{place.phone}</a>
+            </div>
+          )}
+          {place.website && (
+            <div className="flex items-center gap-1.5 text-[.78rem] text-[#555]">
+              <span className="shrink-0">🌐</span>
+              <a
+                href={place.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate hover:underline text-[#1565C0]"
+              >
+                홈페이지
+              </a>
+            </div>
+          )}
+          {place.facilities && (
+            <div className="flex items-start gap-1.5 text-[.78rem] text-[#555]">
+              <span className="mt-[1px] shrink-0">🏢</span>
+              <span className="leading-snug line-clamp-1">{place.facilities}</span>
             </div>
           )}
         </div>

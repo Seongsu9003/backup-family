@@ -152,12 +152,18 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 |------|------|----------|--------|------|
 | `id` | uuid | NO | `gen_random_uuid()` | PK |
 | `name` | text | NO | — | 장소명 |
-| `description` | text | NO | `''` | 소개글 |
-| `address` | text | NO | `''` | 주소 |
+| `region_1` | text | NO | `''` | 시/도 (예: 경기도) |
+| `region_2` | text | NO | `''` | 구/군 (예: 고양시 덕양구) |
+| `address` | text | NO | `''` | 전체 주소 |
 | `category` | text | NO | `'기타'` | `도서관` \| `공원` \| `문화센터` \| `기타` |
-| `tags` | text[] | NO | `'{}'` | 태그 목록 (예: `['영유아','무료','평일추천']`) |
+| `description` | text | NO | `''` | 소개글 (특화 분야) |
+| `facilities` | text | NO | `''` | 시설 정보 |
 | `hours` | text | NO | `''` | 운영시간 (예: 평일 09:00~18:00) |
 | `closed_days` | text | NO | `''` | 휴관일 |
+| `parking` | text | NO | `''` | 주차 정보 (가능/불가/유료 등) |
+| `phone` | text | NO | `''` | 전화번호 |
+| `website` | text | NO | `''` | 홈페이지 URL |
+| `tags` | text[] | NO | `'{}'` | 태그 목록 (예: `['영유아','무료','평일추천']`) |
 | `is_free` | boolean | NO | `true` | 무료 여부 |
 | `image_url` | text | NO | `''` | 대표 이미지 URL |
 | `is_active` | boolean | NO | `true` | 노출 여부 (false = 비활성, 공개 페이지 미노출) |
@@ -170,6 +176,8 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 | `places_pkey` | `id` | PK |
 | `idx_places_category` | `category` | 카테고리 필터용 |
 | `idx_places_is_active` | `is_active` | 공개 조회 필터용 |
+| `idx_places_region_1` | `region_1` | 시/도 필터용 |
+| `idx_places_region_2` | `region_2` | 구/군 필터용 |
 
 ### RLS
 
@@ -181,12 +189,28 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 ### CSV 대량 등록 형식
 
 ```csv
-name,category,description,address,hours,closed_days,is_free,tags,image_url
-화정 어린이 도서관,도서관,어린이를 위한 전문 도서관,경기도 고양시 덕양구 화정로 30,09:00~18:00,월요일,true,영유아|무료|평일추천,
+place_name,region_1,region_2,address,specialty,facilities,opening_hours,closed_days,parking_available,phone_number,website_url,category,is_free,tags,image_url
+화정 어린이 도서관,경기도,고양시 덕양구,경기도 고양시 덕양구 화정로 30,어린이 전문 도서관,열람실·컴퓨터실·수유실,09:00~18:00,월요일,가능,031-000-0000,https://lib.goyang.go.kr,도서관,true,영유아|무료|평일추천,
 ```
 
-- `tags`: 파이프(`|`) 구분 — 예: `영유아|무료|평일추천`
-- `is_free`: `true` 또는 `false`
+| 컬럼 | 필수 | 설명 |
+|------|------|------|
+| `place_name` | ✅ | 장소명 |
+| `region_1` | ✅ | 시/도 (예: 경기도) |
+| `region_2` | ✅ | 구/군 (예: 고양시 덕양구) |
+| `address` | — | 전체 주소 |
+| `specialty` | — | 특화 분야 → `description` 컬럼으로 저장 |
+| `facilities` | — | 시설 정보 |
+| `opening_hours` | — | 운영시간 → `hours` 컬럼으로 저장 |
+| `closed_days` | — | 휴관일 |
+| `parking_available` | — | 주차 정보 → `parking` 컬럼으로 저장 |
+| `phone_number` | — | 전화번호 → `phone` 컬럼으로 저장 |
+| `website_url` | — | 홈페이지 URL → `website` 컬럼으로 저장 |
+| `category` | — | 미입력 시 `도서관` 기본값 |
+| `is_free` | — | `true` / `false`, 미입력 시 `true` |
+| `tags` | — | 파이프(`\|`) 구분 — 예: `영유아\|무료\|평일추천` |
+| `image_url` | — | 대표 이미지 URL |
+
 - 템플릿 파일: 어드민 → 장소 관리 → CSV 가져오기 → 📥 템플릿 다운로드
 
 ---
@@ -238,3 +262,4 @@ name,category,description,address,hours,closed_days,is_free,tags,image_url
 | 2026-03-24 | RLS 정책 추가 — `test_results` (anon SELECT·INSERT·UPDATE, authenticated ALL), `partners` (authenticated ALL) |
 | 2026-03-24 | `parent_visitors` 테이블 문서화 (id, email, visited_at) |
 | 2026-03-24 | `places` 테이블 추가 — 부모 동반 추천 장소 콘텐츠 관리 |
+| 2026-03-24 | `places` 컬럼 확장 — `region_1`, `region_2`, `facilities`, `parking`, `phone`, `website` 추가 (CSV 실제 형식 반영) |
