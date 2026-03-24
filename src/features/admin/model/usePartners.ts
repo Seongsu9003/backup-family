@@ -52,20 +52,21 @@ export function usePartnerStats() {
 
 // ── 파트너 생성 ──────────────────────────────────
 interface CreatePartnerInput {
-  name:    string
-  biz_no:  string
-  phone:   string
-  website: string
-  address: string
-  type:    Partner['type']
-  memo:    string
+  name:     string
+  type:     Partner['type']
+  memo:     string
+  // 사업자 정보는 UI에서 입력받지 않고 DB에만 보관 (Supabase에서 직접 관리)
+  biz_no?:  string
+  phone?:   string
+  website?: string
+  address?: string
 }
 
 export function useCreatePartner() {
   const queryClient = useQueryClient()
 
   return useMutation<Partner, Error, CreatePartnerInput>({
-    mutationFn: async ({ name, biz_no, phone, website, address, type, memo }) => {
+    mutationFn: async ({ name, type, memo, biz_no = '', phone = '', website = '', address = '' }) => {
       // 현재 최대 seq 조회 → nextSeq 계산
       const { data: maxRow, error: seqErr } = await supabase
         .from('partners')

@@ -3,9 +3,10 @@
 // ═══════════════════════════════════════════════════
 //  파트너 관리 패널 (BIZ)
 //  - 파트너 목록 + 신청자 수 조회
-//  - 신규 파트너 생성 폼 (사업자 정보 포함)
-//  - 행 클릭 → 상세 정보 슬라이드 패널
-//  - 활성/비활성 토글
+//  - 신규 파트너 코드 생성 (업체명·구분·메모만 입력)
+//  - 행 클릭 → 유입 링크·신청자 수·활성토글 슬라이드 패널
+//  ※ 사업자 정보(biz_no, phone, website, address)는
+//    DB에서 직접 관리하며 UI에는 노출하지 않습니다.
 // ═══════════════════════════════════════════════════
 import { useState } from 'react'
 import {
@@ -22,51 +23,21 @@ const TYPE_LABELS: Record<Partner['type'], string> = {
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://backup-family.vercel.app'
 
-// ── 입력 필드 공통 컴포넌트 ─────────────────────
-interface FieldProps {
-  label:       string
-  value:       string
-  onChange:    (v: string) => void
-  placeholder: string
-  required?:   boolean
-  className?:  string
-}
-function Field({ label, value, onChange, placeholder, required, className = 'w-48' }: FieldProps) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[.72rem] font-bold text-[#8A8A8A] uppercase tracking-wide">
-        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
-      </label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`px-3 py-2 border border-[#E4E0DC] rounded-lg text-[.83rem] outline-none focus:border-[#D85A3A] ${className}`}
-      />
-    </div>
-  )
-}
-
 // ── 상세 슬라이드 패널 ──────────────────────────
 interface DetailPanelProps {
-  partner:     Partner
-  stats:       number
-  onClose:     () => void
-  onToggle:    () => void
-  isToggling:  boolean
+  partner:    Partner
+  stats:      number
+  onClose:    () => void
+  onToggle:   () => void
+  isToggling: boolean
 }
 function DetailPanel({ partner, stats, onClose, onToggle, isToggling }: DetailPanelProps) {
   const partnerUrl = `${BASE_URL}/?partner=${partner.code}`
 
   return (
     <>
-      {/* 배경 오버레이 */}
-      <div
-        className="fixed inset-0 bg-black/20 z-40"
-        onClick={onClose}
-      />
-      {/* 슬라이드 패널 */}
-      <div className="fixed right-0 top-0 h-full w-[360px] bg-white shadow-2xl z-50 flex flex-col overflow-y-auto">
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+      <div className="fixed right-0 top-0 h-full w-[340px] bg-white shadow-2xl z-50 flex flex-col overflow-y-auto">
         {/* 헤더 */}
         <div className="px-6 py-5 border-b border-[#E4E0DC] flex items-start justify-between">
           <div>
@@ -88,7 +59,9 @@ function DetailPanel({ partner, stats, onClose, onToggle, isToggling }: DetailPa
         <div className="px-6 py-4 bg-[#F7F5F3] border-b border-[#E4E0DC] flex gap-6">
           <div>
             <p className="text-[.72rem] text-[#8A8A8A] font-bold uppercase tracking-wide">누적 신청자</p>
-            <p className="text-[1.5rem] font-extrabold text-[#D85A3A]">{stats}<span className="text-[.85rem] font-semibold text-[#8A8A8A] ml-1">명</span></p>
+            <p className="text-[1.5rem] font-extrabold text-[#D85A3A]">
+              {stats}<span className="text-[.85rem] font-semibold text-[#8A8A8A] ml-1">명</span>
+            </p>
           </div>
           <div>
             <p className="text-[.72rem] text-[#8A8A8A] font-bold uppercase tracking-wide">구분</p>
@@ -100,33 +73,6 @@ function DetailPanel({ partner, stats, onClose, onToggle, isToggling }: DetailPa
               {new Date(partner.created_at).toLocaleDateString('ko-KR')}
             </p>
           </div>
-        </div>
-
-        {/* 사업자 정보 */}
-        <div className="px-6 py-5 flex flex-col gap-4 border-b border-[#E4E0DC]">
-          <p className="text-[.75rem] font-bold text-[#8A8A8A] uppercase tracking-wide">사업자 정보</p>
-          {[
-            { label: '사업자등록번호', value: partner.biz_no  || '-' },
-            { label: '전화번호',       value: partner.phone   || '-' },
-            { label: '홈페이지',       value: partner.website || '-' },
-            { label: '사업장 주소',    value: partner.address || '-' },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <p className="text-[.72rem] text-[#AAAAAA]">{label}</p>
-              {label === '홈페이지' && value !== '-' ? (
-                <a
-                  href={value}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[.85rem] text-[#4A9FCC] hover:underline break-all"
-                >
-                  {value}
-                </a>
-              ) : (
-                <p className="text-[.85rem] text-[#1A1A1A] break-all">{value}</p>
-              )}
-            </div>
-          ))}
         </div>
 
         {/* 메모 */}
@@ -141,7 +87,7 @@ function DetailPanel({ partner, stats, onClose, onToggle, isToggling }: DetailPa
         <div className="px-6 py-4 border-b border-[#E4E0DC]">
           <p className="text-[.72rem] text-[#AAAAAA] mb-1.5">유입 링크</p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 text-[.75rem] bg-[#F7F5F3] px-2 py-1.5 rounded border border-[#E4E0DC] text-[#4A4A4A] break-all">
+            <code className="flex-1 text-[.72rem] bg-[#F7F5F3] px-2 py-1.5 rounded border border-[#E4E0DC] text-[#4A4A4A] break-all">
               {partnerUrl}
             </code>
             <button
@@ -178,38 +124,22 @@ export function PartnerPanel() {
   const createPartner                       = useCreatePartner()
   const toggleActive                        = useTogglePartnerActive()
 
-  // 상세 패널
   const [detailPartner, setDetailPartner] = useState<Partner | null>(null)
-
-  // 생성 폼 상태
-  const [formOpen, setFormOpen] = useState(false)
-  const [name,     setName]     = useState('')
-  const [bizNo,    setBizNo]    = useState('')
-  const [phone,    setPhone]    = useState('')
-  const [website,  setWebsite]  = useState('')
-  const [address,  setAddress]  = useState('')
-  const [type,     setType]     = useState<Partner['type']>('agency')
-  const [memo,     setMemo]     = useState('')
-  const [formErr,  setFormErr]  = useState<string | null>(null)
+  const [formOpen, setFormOpen]           = useState(false)
+  const [name,     setName]               = useState('')
+  const [type,     setType]               = useState<Partner['type']>('agency')
+  const [memo,     setMemo]               = useState('')
+  const [formErr,  setFormErr]            = useState<string | null>(null)
 
   const resetForm = () => {
-    setName(''); setBizNo(''); setPhone(''); setWebsite('')
-    setAddress(''); setType('agency'); setMemo(''); setFormErr(null)
+    setName(''); setType('agency'); setMemo(''); setFormErr(null)
   }
 
   const handleCreate = async () => {
     if (!name.trim()) { setFormErr('업체명을 입력해주세요.'); return }
     setFormErr(null)
     try {
-      await createPartner.mutateAsync({
-        name:    name.trim(),
-        biz_no:  bizNo.trim(),
-        phone:   phone.trim(),
-        website: website.trim(),
-        address: address.trim(),
-        type,
-        memo:    memo.trim(),
-      })
+      await createPartner.mutateAsync({ name: name.trim(), type, memo: memo.trim() })
       resetForm()
       setFormOpen(false)
     } catch (e) {
@@ -238,11 +168,22 @@ export function PartnerPanel() {
 
         {/* 생성 폼 */}
         {formOpen && (
-          <div className="px-6 py-5 bg-[#FFF8F6] border-b border-[#F5D5CC]">
-            {/* 필수 */}
-            <div className="flex flex-wrap gap-3 mb-3">
-              <Field label="업체명" value={name} onChange={(v) => { setName(v); setFormErr(null) }}
-                placeholder="예) 선한복지관" required className="w-52" />
+          <div className="px-6 py-4 bg-[#FFF8F6] border-b border-[#F5D5CC]">
+            <div className="flex flex-wrap gap-3 items-end">
+              {/* 업체명 */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[.72rem] font-bold text-[#8A8A8A] uppercase tracking-wide">
+                  업체명 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); setFormErr(null) }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                  placeholder="예) 선한복지관"
+                  className="w-52 px-3 py-2 border border-[#E4E0DC] rounded-lg text-[.83rem] outline-none focus:border-[#D85A3A]"
+                />
+              </div>
+              {/* 구분 */}
               <div className="flex flex-col gap-1">
                 <label className="text-[.72rem] font-bold text-[#8A8A8A] uppercase tracking-wide">구분</label>
                 <select
@@ -255,23 +196,25 @@ export function PartnerPanel() {
                   <option value="direct">직접영업</option>
                 </select>
               </div>
+              {/* 메모 */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[.72rem] font-bold text-[#8A8A8A] uppercase tracking-wide">메모</label>
+                <input
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="선택사항"
+                  className="w-40 px-3 py-2 border border-[#E4E0DC] rounded-lg text-[.83rem] outline-none focus:border-[#D85A3A]"
+                />
+              </div>
+              <button
+                onClick={handleCreate}
+                disabled={createPartner.isPending}
+                className="px-5 py-2 bg-[#1A1A1A] text-white text-[.83rem] font-bold rounded-lg hover:bg-[#333] transition-colors disabled:opacity-50"
+              >
+                {createPartner.isPending ? '생성 중…' : '코드 생성'}
+              </button>
             </div>
-            {/* 사업자 정보 */}
-            <div className="flex flex-wrap gap-3 mb-3">
-              <Field label="사업자등록번호" value={bizNo}   onChange={setBizNo}   placeholder="000-00-00000" className="w-36" />
-              <Field label="전화번호"       value={phone}   onChange={setPhone}   placeholder="02-0000-0000"  className="w-36" />
-              <Field label="홈페이지"       value={website} onChange={setWebsite} placeholder="https://..."   className="w-52" />
-              <Field label="사업장 주소"    value={address} onChange={setAddress} placeholder="서울시 강남구 …"   className="w-64" />
-              <Field label="메모"           value={memo}    onChange={setMemo}    placeholder="선택사항"         className="w-40" />
-            </div>
-            {formErr && <p className="text-[.75rem] text-red-500 mb-2">{formErr}</p>}
-            <button
-              onClick={handleCreate}
-              disabled={createPartner.isPending}
-              className="px-5 py-2 bg-[#1A1A1A] text-white text-[.83rem] font-bold rounded-lg hover:bg-[#333] transition-colors disabled:opacity-50"
-            >
-              {createPartner.isPending ? '생성 중…' : '코드 생성'}
-            </button>
+            {formErr && <p className="text-[.75rem] text-red-500 mt-2">{formErr}</p>}
           </div>
         )}
 
@@ -285,7 +228,7 @@ export function PartnerPanel() {
             <table className="w-full text-[.83rem]">
               <thead>
                 <tr className="bg-[#F7F5F3] text-[#8A8A8A] text-[.72rem] font-bold uppercase tracking-wide">
-                  {['코드', '업체명', '사업자번호', '구분', '신청자', '상태', '등록일'].map(h => (
+                  {['코드', '업체명', '구분', '신청자', '상태', '등록일'].map(h => (
                     <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -301,7 +244,6 @@ export function PartnerPanel() {
                       <code className="font-bold text-[#D85A3A] bg-[#FFF4F2] px-2 py-0.5 rounded">{p.code}</code>
                     </td>
                     <td className="px-4 py-3 font-semibold text-[#1A1A1A]">{p.name}</td>
-                    <td className="px-4 py-3 text-[#4A4A4A]">{p.biz_no || <span className="text-[#CCCCCC]">-</span>}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 rounded-full text-[.72rem] font-semibold bg-[#F7F5F3] text-[#4A4A4A]">
                         {TYPE_LABELS[p.type]}
