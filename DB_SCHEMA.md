@@ -13,6 +13,7 @@
 | [`test_results`](#1-test_results) | 돌봄이 레벨 테스트 결과 저장 (메인) |
 | [`partners`](#2-partners) | 파트너 업체 코드 및 유입 채널 관리 |
 | [`parent_visitors`](#3-parent_visitors) | 보호자 방문자 이메일 수집 (검색 페이지 접근 기록) |
+| [`places`](#5-places) | 부모 동반 추천 장소 콘텐츠 |
 
 ---
 
@@ -140,6 +141,56 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 
 ---
 
+## 5. `places`
+
+부모와 아이가 함께 방문할 수 있는 추천 장소를 관리합니다.
+어드민에서 단건 등록 또는 CSV 대량 등록을 지원합니다.
+
+### 컬럼
+
+| 컬럼 | 타입 | Nullable | 기본값 | 설명 |
+|------|------|----------|--------|------|
+| `id` | uuid | NO | `gen_random_uuid()` | PK |
+| `name` | text | NO | — | 장소명 |
+| `description` | text | NO | `''` | 소개글 |
+| `address` | text | NO | `''` | 주소 |
+| `category` | text | NO | `'기타'` | `도서관` \| `공원` \| `문화센터` \| `기타` |
+| `tags` | text[] | NO | `'{}'` | 태그 목록 (예: `['영유아','무료','평일추천']`) |
+| `hours` | text | NO | `''` | 운영시간 (예: 평일 09:00~18:00) |
+| `closed_days` | text | NO | `''` | 휴관일 |
+| `is_free` | boolean | NO | `true` | 무료 여부 |
+| `image_url` | text | NO | `''` | 대표 이미지 URL |
+| `is_active` | boolean | NO | `true` | 노출 여부 (false = 비활성, 공개 페이지 미노출) |
+| `created_at` | timestamptz | NO | `now()` | 등록 일시 |
+
+### 인덱스
+
+| 이름 | 대상 | 비고 |
+|------|------|------|
+| `places_pkey` | `id` | PK |
+| `idx_places_category` | `category` | 카테고리 필터용 |
+| `idx_places_is_active` | `is_active` | 공개 조회 필터용 |
+
+### RLS
+
+| 정책명 | 대상 Role | 허용 작업 | 조건 |
+|--------|-----------|-----------|------|
+| `anon_select_places` | anon | SELECT | `is_active = true` 인 행만 |
+| `authenticated_all_places` | authenticated | ALL | 전체 허용 (관리자) |
+
+### CSV 대량 등록 형식
+
+```csv
+name,category,description,address,hours,closed_days,is_free,tags,image_url
+화정 어린이 도서관,도서관,어린이를 위한 전문 도서관,경기도 고양시 덕양구 화정로 30,09:00~18:00,월요일,true,영유아|무료|평일추천,
+```
+
+- `tags`: 파이프(`|`) 구분 — 예: `영유아|무료|평일추천`
+- `is_free`: `true` 또는 `false`
+- 템플릿 파일: 어드민 → 장소 관리 → CSV 가져오기 → 📥 템플릿 다운로드
+
+---
+
 ## 4. RLS (Row Level Security) 정책
 
 > **실행 위치:** Supabase Dashboard → SQL Editor → `supabase/migrations/add_rls.sql`
@@ -163,6 +214,13 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 
 > **anon은 partners 테이블에 어떠한 접근도 불가**
 
+### `places`
+
+| 정책명 | 대상 Role | 허용 작업 | 조건 |
+|--------|-----------|-----------|------|
+| `anon_select_places` | anon | SELECT | `is_active = true` 행만 |
+| `authenticated_all_places` | authenticated | ALL | 전체 허용 (관리자) |
+
 ### 향후 개선 사항
 
 - `useSaveResult` upsert를 서버 API Route(`/api/save`) + service_role 키로 이전하면
@@ -179,3 +237,4 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 | 2026-03-24 | `test_results.partner_code` 컬럼 추가 (파트너 유입 추적) |
 | 2026-03-24 | RLS 정책 추가 — `test_results` (anon SELECT·INSERT·UPDATE, authenticated ALL), `partners` (authenticated ALL) |
 | 2026-03-24 | `parent_visitors` 테이블 문서화 (id, email, visited_at) |
+| 2026-03-24 | `places` 테이블 추가 — 부모 동반 추천 장소 콘텐츠 관리 |

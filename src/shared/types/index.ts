@@ -72,6 +72,29 @@ export interface TestResult {
   partner_code?: string   // 파트너 유입 코드 (BUF00001 등, 없으면 undefined)
 }
 
+/** places 테이블 카테고리 */
+export const PLACE_CATEGORIES = ['도서관', '공원', '문화센터', '기타'] as const
+export type PlaceCategory = typeof PLACE_CATEGORIES[number]
+
+/** places 테이블 행 */
+export interface Place {
+  id:          string
+  name:        string
+  description: string
+  address:     string
+  category:    PlaceCategory
+  tags:        string[]       // ['영유아', '무료', '평일추천']
+  hours:       string         // 운영시간 (예: 평일 09:00~18:00)
+  closed_days: string         // 휴관일
+  is_free:     boolean
+  image_url:   string
+  is_active:   boolean
+  created_at:  string
+}
+
+/** 장소 등록 입력값 (id·created_at 제외) */
+export type PlaceInput = Omit<Place, 'id' | 'created_at'>
+
 export interface QuestionLog {
   q_id: string
   type: string

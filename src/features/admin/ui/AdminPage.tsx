@@ -11,6 +11,7 @@ import { getSession, signOut } from '../model/useAdminAuth'
 import { useBulkSetStatus } from '../model/useBulkSetStatus'
 import { StatsDashboard } from './StatsDashboard'
 import { PartnerPanel } from './PartnerPanel'
+import { PlacesPanel } from './PlacesPanel'
 import { ResultsTable } from './ResultsTable'
 import { ResultModal } from './ResultModal'
 
@@ -152,6 +153,9 @@ export function AdminPage() {
           <Link href="/search" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
             보호자 조회 페이지
           </Link>
+          <Link href="/places" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
+            추천 장소 페이지
+          </Link>
           <Link href="/" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
             테스트 페이지
           </Link>
@@ -178,6 +182,7 @@ export function AdminPage() {
           <>
             <StatsDashboard results={results} />
             <PartnerPanel />
+            <PlacesPanel />
             <ResultsTable
               results={results}
               activeTab={activeTab}

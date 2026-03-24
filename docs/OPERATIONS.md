@@ -120,6 +120,42 @@ https://backup-family.vercel.app/?partner=BUF00001
 
 ---
 
+## 6. 추천 장소 관리
+
+### 6-1. 장소 등록 방법
+
+**단건 등록:** `/admin` → 장소 관리 → `+ 장소 추가` 탭
+
+**CSV 대량 등록:** `/admin` → 장소 관리 → `↑ CSV 가져오기` 탭
+1. **템플릿 다운로드** 버튼으로 CSV 양식 확보
+2. 엑셀에서 데이터 입력 후 CSV로 저장
+3. 파일 선택 → 미리보기 확인 → **N건 일괄 등록** 클릭
+
+### 6-2. CSV 형식
+
+```
+name,category,description,address,hours,closed_days,is_free,tags,image_url
+```
+
+| 컬럼 | 형식 | 예시 |
+|------|------|------|
+| `category` | 텍스트 | `도서관` \| `공원` \| `문화센터` \| `기타` |
+| `is_free` | boolean | `true` 또는 `false` |
+| `tags` | 파이프 구분 | `영유아\|무료\|평일추천` |
+| `image_url` | URL 또는 빈 값 | `https://...` |
+
+### 6-3. 장소 노출 규칙
+
+- `is_active = true` 인 장소만 `/places` 공개 페이지에 노출됩니다.
+- 어드민 목록에서 토글로 즉시 활성/비활성 전환 가능합니다.
+
+### 6-4. 지도 연동
+
+- "지도 보기" 버튼은 카카오맵 검색 딥링크로 연결됩니다 (API 키 불필요).
+- 링크 형식: `https://map.kakao.com/link/search/{장소명+주소}`
+
+---
+
 ## 5. 주요 설정값 변경 위치
 
 | 설정 | 파일 | 변수명 |
