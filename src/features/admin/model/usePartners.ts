@@ -52,16 +52,20 @@ export function usePartnerStats() {
 
 // ── 파트너 생성 ──────────────────────────────────
 interface CreatePartnerInput {
-  name: string
-  type: Partner['type']
-  memo: string
+  name:    string
+  biz_no:  string
+  phone:   string
+  website: string
+  address: string
+  type:    Partner['type']
+  memo:    string
 }
 
 export function useCreatePartner() {
   const queryClient = useQueryClient()
 
   return useMutation<Partner, Error, CreatePartnerInput>({
-    mutationFn: async ({ name, type, memo }) => {
+    mutationFn: async ({ name, biz_no, phone, website, address, type, memo }) => {
       // 현재 최대 seq 조회 → nextSeq 계산
       const { data: maxRow, error: seqErr } = await supabase
         .from('partners')
@@ -76,7 +80,7 @@ export function useCreatePartner() {
 
       const { data, error } = await supabase
         .from('partners')
-        .insert({ seq: nextSeq, code, name, type, memo })
+        .insert({ seq: nextSeq, code, name, biz_no, phone, website, address, type, memo })
         .select()
         .single()
       if (error) throw new Error(error.message)

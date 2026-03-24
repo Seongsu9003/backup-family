@@ -45,8 +45,13 @@ export interface MetaInfo {
 export interface Partner {
   id:         string
   seq:        number
-  code:       string   // BUF00001
-  name:       string
+  code:       string              // BUF00001
+  name:       string              // 업체명
+  // 사업자 정보 (선택)
+  biz_no:     string              // 사업자등록번호 (000-00-00000)
+  phone:      string              // 대표 전화번호
+  website:    string              // 홈페이지 URL
+  address:    string              // 사업장 주소
   type:       'agency' | 'franchise' | 'direct'
   is_active:  boolean
   memo:       string
