@@ -9,6 +9,7 @@
   - `src/app/admin/page.tsx` — 관리자 인증 관리 페이지
   - `src/app/search/page.tsx` — 보호자용 돌봄이 조회 페이지
   - `src/app/profile/[testId]/page.tsx` — 공개 돌봄이 프로필 (OG 공유용)
+  - `src/app/places/page.tsx` — 부모 동반 추천 장소 공개 페이지
 - **FSD 레이어 구조:**
   - `src/features/level-test/` — 레벨 테스트 기능 (model / ui)
   - `src/features/admin/` — 관리자 기능
@@ -16,8 +17,6 @@
   - `src/features/search/` — 보호자용 돌봄이 검색
   - `src/features/places/` — 부모 동반 추천 장소 공개 페이지
   - `src/shared/` — 공통 타입, lib, ui
-- **주요 진입점 추가:**
-  - `src/app/places/page.tsx` — 부모 동반 추천 장소 공개 페이지
 - **데이터 스토어:** Supabase (PostgreSQL) — `test_results`, `partners`, `parent_visitors`, `places` 테이블
 - **DB 스키마 문서:** `DB_SCHEMA.md` (테이블 변경 시 반드시 동기화)
 - **기술 스택:** Next.js 16 (App Router), TypeScript, Tailwind CSS, Supabase JS v2, TanStack Query v5, Sentry v9
@@ -71,19 +70,23 @@
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL | 공개 |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon 공개 키 | 공개 |
 | `NEXT_PUBLIC_KAKAO_APP_KEY` | 카카오 JS SDK 앱 키 | 공개 |
+| `NEXT_PUBLIC_ADMIN_PASSWORD` | 어드민 로그인 비밀번호 | 공개 (Vercel 설정 필수) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role 키 — API Route 전용 | **비공개** (절대 클라이언트 노출 금지) |
 | `TELEGRAM_BOT_TOKEN` | 텔레그램 봇 API 토큰 | 비공개 |
 | `TELEGRAM_CHAT_ID` | 텔레그램 관리자 채팅 ID | 비공개 |
 | `SENTRY_AUTH_TOKEN` | Sentry 소스맵 업로드용 토큰 | 비공개 |
 
 ## 📁 주요 shared/lib 파일
-| 파일 | 역할 |
-|------|------|
-| `constants.ts` | `BASE_URL` 등 전역 상수 |
-| `supabase.ts` | Supabase 싱글턴 클라이언트 |
-| `maskName.ts` | 이름 마스킹 유틸 (서버·클라이언트 공용) |
-| `telegramNotify.ts` | 텔레그램 봇 알림 전송 (서버 전용) |
-| `dateUtils.ts` | 날짜 포맷·만료 계산 유틸 |
-| `partnerCookie.ts` | 파트너 유입 코드 30일 쿠키 set/get |
+| 파일 | 역할 | 사용 환경 |
+|------|------|-----------|
+| `constants.ts` | `BASE_URL` 등 전역 상수 | 공용 |
+| `supabase.ts` | Supabase anon 키 싱글턴 클라이언트 | 클라이언트 |
+| `supabaseAdmin.ts` | Supabase service_role 클라이언트 — RLS 우회 | **서버 전용** |
+| `maskName.ts` | 이름 마스킹 유틸 | 공용 |
+| `telegramNotify.ts` | 텔레그램 봇 알림 전송 | 서버 전용 |
+| `dateUtils.ts` | 날짜 포맷·인증 만료 계산 (`CERT_VALIDITY_MONTHS`) | 공용 |
+| `emailUtils.ts` | 이메일 형식 검증 | 서버 전용 |
+| `partnerCookie.ts` | 파트너 유입 코드 30일 쿠키 set/get | 클라이언트 |
 
 ## 🗃 DB 스키마 관리 규칙
 
@@ -99,14 +102,15 @@
 - **변경 이력:** `DB_SCHEMA.md` 하단 "변경 이력" 테이블에 날짜와 내용을 기록합니다.
 
 ## 🐛 알려진 기술 부채
-- ~~**[SEC-01]** 관리자 인증이 클라이언트 사이드 전용~~ → ✅ Supabase Auth 적용
+- ~~**[SEC-01]** 관리자 인증이 클라이언트 사이드 전용~~ → ✅ `proxy.ts` 서버사이드 쿠키 가드 + 커스텀 비밀번호 인증
 - ~~**[SEC-02]** `useLookupResult` 전체 이름 스캔~~ → ✅ 해결
 - ~~**[BUG-01]** `isUpdate` 시 `jobSeeking`/`selectedRegions` 미복원~~ → ✅ 해결
 - ~~**[CODE-01]** `BASE_URL` 여러 파일 하드코딩~~ → ✅ 해결
 - ~~**[TEST-01]** `buildResult`, `quizReducer` 테스트 미작성~~ → ✅ 해결
 - ~~**[SEC-03]** `/admin` URL 보호가 클라이언트 사이드 전용~~ → ✅ `proxy.ts` 서버사이드 쿠키 가드 + `/admin/login` 분리
 - ~~**[SEC-04]** Supabase RLS 미적용~~ → ✅ `supabase/migrations/add_rls.sql` — `partners` anon 차단, `test_results` anon DELETE 차단
-- **[SEC-05]** `useSaveResult` upsert가 anon UPDATE 권한 필요 → 서버 API Route + service_role 키 이전 시 anon 쓰기 범위 최소화 가능 (선택적 개선)
+- ~~**[SEC-05-A]** `places` 어드민 쓰기가 anon 키 노출~~ → ✅ `/api/admin/places` Route + service_role 키 + 쿠키 인증 가드
+- **[SEC-05-B]** `test_results` / `partners` 어드민 쓰기가 여전히 anon 키 사용 → `/api/admin/results`, `/api/admin/partners` Route 전환 시 anon 쓰기 정책 완전 제거 가능 (선택적 개선)
 
 ## 💬 소통 스타일
 - 간결하고 기술적인 톤을 유지하세요.

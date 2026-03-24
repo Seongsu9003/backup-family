@@ -1,7 +1,7 @@
 # backup-family 운영 매뉴얼
 
 > **대상:** 서비스 운영 담당자
-> **최종 업데이트:** 2026-03-24
+> **최종 업데이트:** 2026-03-25
 
 ---
 
@@ -92,13 +92,13 @@ https://backup-family.vercel.app/?partner=BUF00001
 ### 3-1. 로그인
 
 - URL: `/admin/login`
-- 인증: Supabase Auth 이메일 + 비밀번호
-- 세션: 브라우저 세션 쿠키 (`buf_admin_session`, 24시간)
+- 인증: 관리자 비밀번호 (`NEXT_PUBLIC_ADMIN_PASSWORD` 환경변수)
+- 세션: 서버 발급 httpOnly 쿠키 (`buf_admin_session`, 24시간)
 
 ### 3-2. 접근 보안 구조
 
 - **1차 (서버):** `proxy.ts` — `buf_admin_session` 쿠키 없으면 `/admin/login` 리다이렉트
-- **2차 (클라이언트):** Supabase Auth 세션 만료 시 자동 로그아웃 + 리다이렉트
+- **2차 (API Route):** `/api/admin/*` 엔드포인트는 쿠키 재검증 후 service_role 키로 DB 작업 수행
 
 ---
 
@@ -120,9 +120,9 @@ https://backup-family.vercel.app/?partner=BUF00001
 
 ---
 
-## 6. 추천 장소 관리
+## 5. 추천 장소 관리
 
-### 6-1. 장소 등록 방법
+### 5-1. 장소 등록 방법
 
 **단건 등록:** `/admin` → 장소 관리 → `+ 장소 추가` 탭
 
@@ -131,32 +131,50 @@ https://backup-family.vercel.app/?partner=BUF00001
 2. 엑셀에서 데이터 입력 후 CSV로 저장
 3. 파일 선택 → 미리보기 확인 → **N건 일괄 등록** 클릭
 
-### 6-2. CSV 형식
+### 5-2. CSV 형식
 
 ```
-name,category,description,address,hours,closed_days,is_free,tags,image_url
+place_name,region_1,region_2,address,specialty,facilities,opening_hours,closed_days,parking_available,phone_number,website_url
 ```
 
-| 컬럼 | 형식 | 예시 |
+선택 컬럼 (뒤에 추가 가능): `category, is_free, tags, image_url`
+
+| 컬럼 | 필수 | 설명 |
 |------|------|------|
-| `category` | 텍스트 | `도서관` \| `공원` \| `문화센터` \| `기타` |
-| `is_free` | boolean | `true` 또는 `false` |
-| `tags` | 파이프 구분 | `영유아\|무료\|평일추천` |
-| `image_url` | URL 또는 빈 값 | `https://...` |
+| `place_name` | ✅ | 장소명 |
+| `region_1` | ✅ | 시/도 (예: 경기도) |
+| `region_2` | ✅ | 구/군 (예: 고양시 덕양구) |
+| `address` | — | 전체 주소 |
+| `specialty` | — | 특화 분야 |
+| `facilities` | — | 시설 정보 |
+| `opening_hours` | — | 운영시간 |
+| `closed_days` | — | 휴관일 |
+| `parking_available` | — | 주차 정보 |
+| `phone_number` | — | 전화번호 |
+| `website_url` | — | 홈페이지 URL |
+| `category` | — | 미입력 시 `도서관` 기본값 |
+| `is_free` | — | `true`/`false`, 미입력 시 `true` |
+| `tags` | — | 파이프(`\|`) 구분 — 예: `영유아\|무료` |
 
-### 6-3. 장소 노출 규칙
+### 5-3. 장소 노출 규칙
 
 - `is_active = true` 인 장소만 `/places` 공개 페이지에 노출됩니다.
 - 어드민 목록에서 토글로 즉시 활성/비활성 전환 가능합니다.
 
-### 6-4. 지도 연동
+### 5-4. 지도 연동
 
 - "지도 보기" 버튼은 카카오맵 검색 딥링크로 연결됩니다 (API 키 불필요).
 - 링크 형식: `https://map.kakao.com/link/search/{장소명+주소}`
 
+### 5-5. 보안 구조
+
+- 모든 장소 쓰기 작업(등록·수정·삭제)은 `/api/admin/places` Route를 통해 처리됩니다.
+- Route에서 `buf_admin_session` 쿠키를 검증하고 `service_role` 키로 DB에 접근합니다.
+- 공개 페이지(`/places`)의 조회는 anon 키로 `is_active = true` 장소만 반환합니다.
+
 ---
 
-## 5. 주요 설정값 변경 위치
+## 6. 주요 설정값 변경 위치
 
 | 설정 | 파일 | 변수명 |
 |------|------|--------|

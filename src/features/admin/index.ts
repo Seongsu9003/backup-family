@@ -1,3 +1,6 @@
 export { AdminPage } from './ui/AdminPage'
 export { useAdminResults } from './model/useAdminResults'
 export { useSetStatus } from './model/useSetStatus'
+export { useBulkSetStatus } from './model/useBulkSetStatus'
+export { usePartners } from './model/usePartners'
+export { usePlacesAll, useCreatePlace, useBulkCreatePlaces, useTogglePlaceActive, useDeletePlace } from './model/usePlacesAdmin'
