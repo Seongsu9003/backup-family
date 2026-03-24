@@ -132,9 +132,11 @@ code = 'BUF' + seq.toString().padStart(5, '0')
 
 ### RLS
 
-- 기존 정책 1개 적용되어 있음 (Supabase 대시보드에서 확인 필요)
-- `anon` INSERT 허용 권장 (보호자가 이메일 제출 시 기록)
-- `authenticated` SELECT 허용 권장 (관리자 리드 조회)
+| 정책명 | 대상 Role | 허용 작업 | 조건 |
+|--------|-----------|-----------|------|
+| `anon_insert` | public(anon) | INSERT | 전체 허용 (보호자 이메일 제출 시 기록) |
+
+> SELECT는 현재 정책 없음 → 관리자 리드 조회가 필요한 시점에 `authenticated` SELECT 정책 추가 권장
 
 ---
 
