@@ -5,6 +5,58 @@ import type { TestResult } from '@/shared/types'
 import { useSetStatus } from '../model/useSetStatus'
 import { fmtDate, isExpired, isExpiringSoon } from '../model/types'
 
+// ── 서류 열기 버튼 ───────────────────────────────────
+// cert-docs 버킷은 private → 서명 URL API 경유
+// 하위 호환: 기존 데이터에 full URL이 저장된 경우 직접 열기
+function isLegacyUrl(value: string) {
+  return value.startsWith('https://')
+}
+
+function DocOpenButton({ docValue }: { docValue: string }) {
+  const [loading, setLoading] = useState(false)
+
+  const handleOpen = async () => {
+    // 기존 public URL (레거시 데이터) — 직접 열기
+    if (isLegacyUrl(docValue)) {
+      window.open(docValue, '_blank', 'noopener,noreferrer')
+      return
+    }
+    // 신규 storage path — 서명 URL 발급 후 열기
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/admin/cert-docs/signed-url?path=${encodeURIComponent(docValue)}`)
+      if (!res.ok) throw new Error('서명 URL 발급 실패')
+      const { signedUrl } = await res.json()
+      window.open(signedUrl, '_blank', 'noopener,noreferrer')
+    } catch {
+      alert('파일을 열 수 없습니다. 다시 시도해주세요.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleOpen}
+      disabled={loading}
+      className="shrink-0 px-2.5 py-1 rounded-lg text-[.74rem] font-semibold bg-[#EBF2FC] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors disabled:opacity-50"
+    >
+      {loading ? '…' : '열기'}
+    </button>
+  )
+}
+
+/** storage path에서 파일명만 추출 */
+function extractFilename(value: string): string {
+  if (isLegacyUrl(value)) {
+    // https://.../cert-docs/testId/cert_파일명.pdf → 파일명 추출
+    return decodeURIComponent(value.split('/').pop() || value)
+  }
+  // testId/cert_파일명.pdf → cert_파일명.pdf
+  const parts = value.split('/')
+  return decodeURIComponent(parts[parts.length - 1] || value)
+}
+
 interface Props {
   result: TestResult
   onClose: () => void
@@ -127,8 +179,10 @@ export function ResultModal({ result: r, onClose }: Props) {
                 {docs.map((d, i) => (
                   <div key={i} className="flex items-center gap-2 bg-[#F7F5F3] rounded-lg px-3 py-2 text-[.83rem]">
                     <span>📄</span>
-                    <span className="flex-1">{d}</span>
-                    <span className="text-[.7rem] text-[#8A8A8A]">파일명만 저장됨</span>
+                    <span className="flex-1 truncate text-[.82rem] text-[#4A4A4A]">
+                      {extractFilename(d)}
+                    </span>
+                    <DocOpenButton docValue={d} />
                   </div>
                 ))}
               </div>

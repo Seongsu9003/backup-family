@@ -4,9 +4,10 @@
 --
 --  적용 순서:
 --  1. 이 파일 전체 실행 (기존 정책 DROP 후 재생성)
---  2. Storage → cert-docs 버킷 정책 별도 설정 (하단 가이드 참고)
+--  2. Storage → cert-docs 버킷을 Private으로 전환 (하단 가이드 참고)
 --
 --  버전 이력:
+--  v1.1  2026-03-26  cert-docs Storage private 전환 + signed URL 반영
 --  v1.0  2026-03-26  최초 작성 (보안 강화 — anon 키 쓰기 차단)
 -- ================================================================
 
@@ -114,28 +115,30 @@ CREATE POLICY "parent_visitors_read_service"
 
 
 -- ================================================================
---  Storage: cert-docs 버킷 설정 가이드
---  (SQL Editor가 아닌 Supabase Dashboard UI에서 설정)
+--  Storage: cert-docs 버킷 설정 (필수 — Dashboard UI에서 직접 설정)
 --
---  1. Storage → Buckets → cert-docs
---  2. [Public bucket] 체크 해제 → Private 버킷으로 변경
---  3. Policies 탭에서 아래 정책 추가:
+--  ✅ 코드는 이미 전환 완료:
+--     - uploadDoc.ts: publicUrl 대신 storage path 반환
+--     - /api/admin/cert-docs/signed-url: 1시간 유효 서명 URL 발급
+--     - ResultModal: "열기" 버튼 → 서명 URL API 호출 후 파일 열기
 --
---     [INSERT] anon 허용
---       - bucket_id = 'cert-docs'
---       - 경로: (storage.foldername(name))[1] = auth.uid()
---         ※ 현재 인증 없는 구조이므로 임시로 TRUE 허용 후
---            추후 사용자 인증 도입 시 제한
+--  ⚠️ 아래 Dashboard 설정은 반드시 직접 해주세요:
 --
---     [SELECT] service_role 전용 (어드민만 서류 열람)
+--  [1단계] 버킷 Private 전환
+--     Storage → Buckets → cert-docs → Edit bucket
+--     "Public bucket" 체크 해제 → Save
 --
---  ⚠️ 현재 uploadDoc.ts 에서 getPublicUrl() 사용 중
---     버킷을 private으로 전환하면 createSignedUrl() 로 변경 필요:
+--  [2단계] INSERT 정책 추가 (돌봄이 파일 업로드 허용)
+--     Policies → New policy → For full customization
+--     Policy name : allow_anon_insert
+--     Allowed operation : INSERT
+--     Target roles : anon, authenticated
+--     USING expression : (bucket_id = 'cert-docs')
 --
---     const { data } = await supabase.storage
---       .from('cert-docs')
---       .createSignedUrl(path, 60 * 60) // 1시간 유효
---     return data.signedUrl
+--  [3단계] 기존 public URL 마이그레이션 (선택사항)
+--     ResultModal은 https:// 로 시작하는 레거시 URL을 자동 감지해
+--     직접 링크로 열어줍니다. 즉시 마이그레이션 없이도 동작합니다.
+--     (단, 버킷 Private 전환 후 레거시 URL은 404 반환 — 순차 마이그레이션 권장)
 --
 -- ================================================================
 

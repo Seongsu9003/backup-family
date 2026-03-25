@@ -2,6 +2,10 @@
 //  서류 업로드 유틸 (BUG-02)
 //  Supabase Storage 'cert-docs' 버킷에 파일 업로드
 //  경로: {testId}/{docKey}_{originalFilename}
+//
+//  🔒 보안 강화: publicUrl 대신 storage path 반환
+//  - cert-docs 버킷은 private으로 운영
+//  - 어드민 서류 열람 시 /api/admin/cert-docs/signed-url 로 서명 URL 발급
 // ═══════════════════════════════════════════════════
 import { supabase } from '@/shared/lib/supabase'
 import type { CertDocs } from './types'
@@ -17,10 +21,11 @@ export interface UploadDocParams {
 }
 
 /**
- * 서류 파일을 Supabase Storage에 업로드하고 publicUrl을 반환합니다.
+ * 서류 파일을 Supabase Storage에 업로드하고 storage path를 반환합니다.
  * - 허용 타입: PDF, JPG, PNG
  * - 최대 크기: 5MB
- * - 경로: {testId}/{docKey}_{originalFilename}
+ * - 반환값: "{testId}/{docKey}_{filename}" (storage path, public URL 아님)
+ * - 열람: 어드민은 /api/admin/cert-docs/signed-url?path=... 로 서명 URL 발급
  */
 export async function uploadDoc({ testId, docKey, file }: UploadDocParams): Promise<string> {
   // ── 클라이언트 유효성 검사 ────────────────────────
@@ -39,7 +44,6 @@ export async function uploadDoc({ testId, docKey, file }: UploadDocParams): Prom
 
   if (error) throw new Error(error.message)
 
-  // ── publicUrl 반환 ────────────────────────────────
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  return data.publicUrl
+  // ── storage path 반환 (publicUrl 제거) ───────────
+  return path
 }
