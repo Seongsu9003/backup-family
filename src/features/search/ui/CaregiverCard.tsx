@@ -2,19 +2,42 @@
 
 // ═══════════════════════════════════════════════════
 //  돌봄이 카드 — Supanova Double-Bezel + Spring
-//  - 점수 제거, 유형 설명 표시
-//  - 접수 완료 상태 배지 (localStorage)
+//  Phase 1 개선:
+//  - 레벨: Lv.{num} 만 표시 (레이블 제거)
+//  - 유형 배지: 중복 "형형" 제거
+//  - 아바타: DiceBear fun-emoji (testId seed, 임시)
+//  - 닉네임: 마스킹 이름 → "닉네임" 레이블로 표시
+//  - 등록일: "N개월 전 합류" 표시
+//  - 접수 완료 배지
 // ═══════════════════════════════════════════════════
 import Link from 'next/link'
-import { AnonymizedCaregiver, LV_COLORS, CARE_TYPE_INFO } from '../model/types'
+import Image from 'next/image'
+import { AnonymizedCaregiver, CARE_TYPE_INFO } from '../model/types'
 import { useInquiryStore, formatInquiryDate } from '../model/useInquiryStore'
 
 const LV_BADGE: Record<number, string> = {
-  1: 'bg-[#F7F5F3] text-[#5C5852]',
+  1: 'bg-[#F7F5F3] text-[#5C5852] border border-[#E8E4DF]',
   2: 'bg-[#EBF2FC] text-[#1565C0]',
   3: 'bg-[#DDF0EE] text-[#1A7A72]',
   4: 'bg-[#FDF2EE] text-[#C04828]',
   5: 'bg-[#F5EEF8] text-[#6C3483]',
+}
+
+/** testId seed 기반 DiceBear fun-emoji 아바타 URL */
+function avatarUrl(testId: string): string {
+  return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=${encodeURIComponent(testId)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`
+}
+
+/** 등록일로부터 경과 시간 표시 */
+function relativeJoinedAt(isoDate: string): string {
+  if (!isoDate) return ''
+  const diff = Date.now() - new Date(isoDate).getTime()
+  const days  = Math.floor(diff / (1000 * 60 * 60 * 24))
+  if (days < 1)  return '오늘 합류'
+  if (days < 7)  return `${days}일 전 합류`
+  if (days < 30) return `${Math.floor(days / 7)}주 전 합류`
+  const months = Math.floor(days / 30)
+  return `${months}개월 전 합류`
 }
 
 interface Props {
@@ -23,7 +46,6 @@ interface Props {
 
 export function CaregiverCard({ caregiver: c }: Props) {
   const lvNum    = c.level?.num || 1
-  const avatarBg = LV_COLORS[lvNum] || '#888'
   const typeInfo = c.careType?.code ? CARE_TYPE_INFO[c.careType.code] : null
 
   const { getInquiryDate } = useInquiryStore()
@@ -44,25 +66,44 @@ export function CaregiverCard({ caregiver: c }: Props) {
         </div>
       )}
 
-      {/* 상단: 아바타 + 이름 */}
+      {/* 상단: 아바타 + 닉네임 + 합류일 */}
       <div className="relative flex items-center gap-3.5 mb-4" style={{ zIndex: 1 }}>
-        <div
-          className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-xl font-extrabold text-white shrink-0"
-          style={{ background: avatarBg }}
-        >
-          {c.avatarLetter}
+        {/* DiceBear 캐릭터 아바타 (임시) */}
+        <div className="w-[52px] h-[52px] rounded-full overflow-hidden border-2 border-[#E8E4DF] bg-[#F7F5F2] shrink-0 flex items-center justify-center">
+          <Image
+            src={avatarUrl(c._testId)}
+            alt="돌봄이 캐릭터"
+            width={52}
+            height={52}
+            className="w-full h-full object-cover"
+            unoptimized
+          />
         </div>
-        <div>
-          <div className="text-[15px] font-bold text-[#1A1714]">{c.maskedName} 돌봄이</div>
-          <div className="text-[12px] text-[#9C9890] mt-0.5">구직 활동 중</div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[15px] font-bold text-[#1A1714] truncate">{c.maskedName}</span>
+            <span className="text-[11px] text-[#9C9890] font-medium shrink-0">닉네임</span>
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[12px] text-[#9C9890]">구직 활동 중</span>
+            {c.joinedAt && (
+              <>
+                <span className="text-[#E8E4DF]">·</span>
+                <span className="text-[11px] text-[#B8B4AF]">{relativeJoinedAt(c.joinedAt)}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 배지 */}
+      {/* 배지 행 */}
       <div className="relative flex flex-wrap gap-1.5 mb-3.5" style={{ zIndex: 1 }}>
+        {/* #1 레벨: Lv.{num} 만 표시 */}
         <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${LV_BADGE[lvNum] ?? LV_BADGE[1]}`}>
-          {c.level?.label || 'Lv.1'}
+          Lv.{lvNum}
         </span>
+
+        {/* 인증 상태 */}
         {c.certStatus === '인증완료' ? (
           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EEF6EF] text-[#2E7D32]">
             ✓ 인증 완료
@@ -72,12 +113,15 @@ export function CaregiverCard({ caregiver: c }: Props) {
             {c.certStatus}
           </span>
         )}
+
+        {/* #3 유형: label 그대로 사용 (label에 이미 "형" 포함) */}
         {c.careType && (
           <span
             className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white"
             style={{ background: c.careType.color || '#888' }}
           >
-            {typeInfo?.emoji && <span className="mr-0.5">{typeInfo.emoji}</span>}{c.careType.label}형
+            {typeInfo?.emoji && <span className="mr-0.5">{typeInfo.emoji}</span>}
+            {c.careType.label}
           </span>
         )}
       </div>

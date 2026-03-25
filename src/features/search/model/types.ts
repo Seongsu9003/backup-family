@@ -3,7 +3,7 @@ import type { TestResult } from '@/shared/types'
 export interface AnonymizedCaregiver {
   _internalRef: string     // 내부 참조용 (화면 미노출) — test_id 뒷 6자리
   _testId: string          // 관리자 알림용 내부 ID (화면 미노출)
-  maskedName: string       // 성OO
+  maskedName: string       // 성OO (닉네임 미설정 시 폴백)
   avatarLetter: string
   level: TestResult['level']
   careType: TestResult['care_type']
@@ -11,6 +11,7 @@ export interface AnonymizedCaregiver {
   regions: string[]
   score: number
   jobSeeking: string       // 구직 상태 (필터 토글용)
+  joinedAt: string         // 등록일 (meta.created_at ISO string)
 }
 
 export const TYPE_COLORS: Record<string, string> = {
@@ -43,6 +44,7 @@ export function anonymize(r: TestResult): AnonymizedCaregiver {
     regions:      r.tester?.preferred_region || [],
     score:        r.score?.total || 0,
     jobSeeking:   r.job_seeking || '',
+    joinedAt:     r.meta?.created_at || '',
   }
 }
 
