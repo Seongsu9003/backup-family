@@ -4,116 +4,157 @@
 - **이름:** backup-family (BUF)
 - **목적:** 돌봄인력 레벨 테스트 · 인증 · 구인 DB 구축
 - **배포:** https://backup-family.vercel.app
-- **주요 진입점:**
-  - `src/app/page.tsx` — 대문 (서비스 소개 랜딩 페이지)
-  - `src/app/test/page.tsx` — 돌봄이 레벨 테스트
-  - `src/app/search/page.tsx` — 보호자용 돌봄이 조회 페이지
-  - `src/app/profile/[testId]/page.tsx` — 공개 돌봄이 프로필 (OG 공유용)
-  - `src/app/places/page.tsx` — 부모 동반 추천 장소 공개 페이지
-  - `src/app/admin/page.tsx` — 관리자 인증 관리 페이지
-- **FSD 레이어 구조:**
-  - `src/features/home/` — 대문 랜딩 페이지
-  - `src/features/level-test/` — 레벨 테스트 기능 (model / ui)
-  - `src/features/admin/` — 관리자 기능
-  - `src/features/profile/` — 공개 프로필 페이지
-  - `src/features/search/` — 보호자용 돌봄이 검색
-  - `src/features/places/` — 부모 동반 추천 장소 공개 페이지
-  - `src/shared/` — 공통 타입, lib, ui
-- **데이터 스토어:** Supabase (PostgreSQL) — `test_results`, `partners`, `parent_visitors`, `places` 테이블
-- **DB 스키마 문서:** `DB_SCHEMA.md` (테이블 변경 시 반드시 동기화)
-- **기술 스택:** Next.js 16 (App Router), TypeScript, Tailwind CSS, Supabase JS v2, TanStack Query v5, Sentry v9
+- **현재 버전:** v0.4.0 (2026-03-25)
 
-## 🗂 주요 데이터 흐름
-1. 응시자가 레벨 테스트(설문 + 시나리오) 응시 → `calcScores` / `getLevel` / `calcCareType` 로 결과 산출
-2. 이름·연락처 입력 후 `useSaveResult` → Supabase `test_results` upsert (test_id 기준)
-3. 저장 완료 → `/api/notify/result` → 텔레그램으로 신규 신청 알림 발송 (fire-and-forget)
-4. 저장 후 `/profile/[testId]` 공개 프로필 URL 생성 → 카카오톡 공유 / 링크 복사
-5. 보호자는 `/search`에서 레벨·인증 여부·지역·점수구간·정렬 필터로 돌봄이 검색
-6. 보호자가 연결 요청 → `/api/notify/contact` → 텔레그램으로 요청 알림 발송
-7. 관리자는 `/admin`에서 인증 상태(미인증 → 검토중 → 인증완료) 관리
+### 주요 진입점
+| 경로 | 역할 |
+|------|------|
+| `src/app/page.tsx` | 홈 랜딩 (Editorial 히어로 + Bento Grid) |
+| `src/app/test/page.tsx` | 돌봄이 레벨 테스트 |
+| `src/app/search/page.tsx` | 보호자용 돌봄이 조회 |
+| `src/app/admin/page.tsx` | 관리자 인증 관리 |
+| `src/app/places/page.tsx` | 추천 장소 조회 |
+| `src/app/profile/page.tsx` | 돌봄이 프로필 |
+
+### FSD 레이어 구조
+```
+src/
+├── app/                     — Next.js App Router (라우트·레이아웃·API)
+│   └── api/                 — API Route Handlers (service_role 키 필요 시)
+├── features/
+│   ├── home/                — 홈 랜딩 기능
+│   ├── level-test/          — 레벨 테스트 (model / ui)
+│   ├── admin/               — 관리자 기능
+│   ├── search/              — 돌봄이 조회 (model / ui)
+│   ├── places/              — 추천 장소 (model / ui)
+│   └── profile/             — 돌봄이 프로필
+└── shared/                  — 공통 타입, lib, ui
+```
+
+- **데이터 스토어:** Supabase (PostgreSQL) — `test_results`, `places` 테이블
+- **기술 스택:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4, Supabase JS v2, TanStack Query v5, Pretendard Variable 폰트
+
+---
+
+## 🎨 디자인 시스템 — Supanova Warm Editorial
+
+> **반드시 준수.** 새 컴포넌트 작성 시 아래 패턴을 기본으로 사용합니다.
+
+### 컬러 토큰
+| 용도 | 값 |
+|------|-----|
+| 배경 (warm white) | `#F7F5F2` |
+| 카드 배경 | `#FFFFFF` |
+| 테두리 | `#E8E4DF` |
+| 텍스트 1차 | `#1A1714` |
+| 텍스트 2차 | `#5C5852` |
+| 텍스트 3차 (muted) | `#9C9890` |
+| 포인트 (coral) | `#D85A3A` |
+| 포인트 hover | `#C04828` |
+| 포인트 헤더 | `#C04830` |
+| 민트 (장소) | `#3A9E94` |
+| 블루 (인증) | `#1565C0` |
+
+### Double-Bezel 카드 패턴
+```tsx
+<div className="relative bg-white rounded-2xl border border-[#E8E4DF] p-5 overflow-hidden">
+  {/* 내부 베젤 — 항상 포함 */}
+  <div className="absolute inset-[5px] rounded-[14px] border border-black/[0.04] pointer-events-none" />
+  {/* 콘텐츠는 relative + z-index 필요 */}
+  <div className="relative" style={{ zIndex: 1 }}>...</div>
+</div>
+```
+
+### Spring 애니메이션
+```tsx
+// hover 인터랙션에 사용
+className="transition-[transform,box-shadow] duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:shadow-lg"
+```
+
+### Sticky 헤더 (warm nav)
+```tsx
+<header className="sticky top-0 z-20 bg-[#F7F5F2]/95 backdrop-blur-sm border-b border-[#E8E4DF] px-6 h-14 flex items-center justify-between">
+```
+
+### Typography
+- **폰트:** Pretendard Variable (`pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css`)
+- **Headline:** `font-black tracking-[-0.04em]`, `clamp(26px, 3.5vw, 38px)`
+- **Body:** `text-[15px] leading-[1.7]`
+- **Label:** `text-[11px] font-bold uppercase tracking-[.08em] text-[#9C9890]`
+- **한국어 줄바꿈:** `style={{ wordBreak: 'keep-all' }}` 항상 적용
+
+---
+
+## 📱 모바일 반응형 원칙
+
+### iOS 줌인 방지 (전역 적용 완료)
+```css
+/* globals.css — 이미 적용됨, 중복 추가 금지 */
+input, select, textarea {
+  font-size: max(16px, 1em);
+}
+```
+
+### 모달 — 바텀시트 패턴
+모바일에서는 하단 슬라이드업, 데스크톱에서는 중앙 다이얼로그.
+```tsx
+{/* 오버레이 */}
+<div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-0 sm:p-6">
+  {/* 모달 패널 */}
+  <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] shadow-2xl overflow-hidden max-h-[92svh] flex flex-col">
+    {/* 헤더: shrink-0 */}
+    <div className="shrink-0">...</div>
+    {/* 스크롤 바디: overflow-y-auto flex-1 + safe-area */}
+    <div className="overflow-y-auto flex-1 pb-[env(safe-area-inset-bottom,20px)]">...</div>
+  </div>
+</div>
+```
+
+### 터치 타겟
+- 모든 버튼/아이콘 버튼: 최소 `w-11 h-11` (44px)
+- 닫기 버튼 예시: `className="w-11 h-11 rounded-full flex items-center justify-center"`
+
+### 필터 바 그리드 (모바일 2열)
+```tsx
+{/* 컨테이너 */}
+<div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5 items-end">
+  {/* FilterGroup */}
+  <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[160px]">...</div>
+  {/* 카운트 표시: grid에서 ml-auto 미작동 → col-span-2 사용 */}
+  <span className="col-span-2 sm:col-auto ml-auto text-right sm:text-left">...</span>
+</div>
+```
+
+---
 
 ## 🛠 코딩 스타일 및 원칙
 - **언어:** 모든 주석과 문서화는 한국어로 진행합니다.
 - **아키텍처:** FSD(Feature-Sliced Design) 패턴을 준수합니다.
 - **컴포넌트:** 함수형 컴포넌트와 Hooks를 사용합니다.
 - **상태 관리:** 클라이언트 상태는 `useReducer` (복잡 흐름) 또는 `useState`, 서버 상태는 `TanStack Query`를 사용합니다.
-- **스타일링:** Tailwind CSS 클래스만 사용합니다. 인라인 스타일 금지.
-- **타입:** `any` 타입 사용 금지. 모든 타입은 `src/shared/types/index.ts` 또는 feature별 types.ts에 정의합니다.
-
-## 🏗 FSD 레이어 규칙
-- **의존 방향:** `app → features → shared` 단방향만 허용합니다. 역방향(shared → features, features → app) 금지.
-- **feature 간 참조:** feature끼리 직접 import 금지. 공유가 필요한 코드는 `shared/`로 올립니다.
-  - ✅ `features/profile` → `shared/lib/maskName`
-  - ❌ `features/profile` → `features/admin/model/types`
-- **shared/lib 기준:** 2개 이상의 feature에서 사용되는 순수 유틸 함수는 반드시 `src/shared/lib/`에 위치합니다.
-- **shared/ui 기준:** 2개 이상의 feature에서 사용되는 UI 컴포넌트는 `src/shared/ui/`에 위치합니다.
-- **index.ts barrel export:** 각 feature의 공개 인터페이스는 `feature/index.ts`를 통해서만 노출합니다.
-- **model vs ui 분리:** 비즈니스 로직(hooks, 순수 함수, 타입)은 `model/`, UI 렌더링은 `ui/`에만 위치합니다.
 
 ## 📋 작업 규칙 (Workflow)
-
-> **⚠️ 모든 개발 작업은 반드시 아래 순서를 따릅니다.**
-
-1. **계획 먼저:** 구현 전에 변경 범위·파일·로직 구조를 설명하고 승인을 받습니다.
-2. **테스트 코드 작성 → 컨펌:** 구현 전에 테스트 코드를 먼저 작성하여 공유하고, 승인 후 본 구현을 진행합니다.
-3. **구현:** 승인된 계획과 테스트를 기반으로 코드를 작성합니다.
-4. **에러 처리:** 모든 API 호출에는 `try-catch` 블록과 사용자 친화적인 에러 메시지를 포함합니다.
-5. **상수:** `BASE_URL`, 환경변수 등 반복 사용되는 값은 `src/shared/lib/constants.ts`에서 관리합니다.
+1. **코드 작성 전:** 복잡한 로직은 먼저 논리적 구조(의사코드)를 제안하고 내 승인을 받으세요.
+2. **에러 처리:** 모든 API 호출에는 `try-catch` 블록과 사용자 친화적인 에러 메시지를 포함합니다.
+3. **테스트:** 비즈니스 로직이 포함된 유틸리티 함수에는 `Vitest` 기반의 테스트 코드를 함께 작성합니다.
+4. **새 컴포넌트:** Supanova 디자인 토큰·패턴을 기본으로 적용하고, `buf-app/.skills/SUPANOVA.md` 참조.
 
 ## 🚫 금지 사항
-- 중복된 유틸리티 함수를 만들지 마세요. (새 유틸 작성 전 `src/shared/lib/` 반드시 확인)
+- 중복된 유틸리티 함수를 만들지 마세요. (`/utils` 폴더 확인 필수)
 - `any` 타입을 절대 사용하지 마세요.
-- 인라인 스타일링 대신 Tailwind 클래스를 사용하세요.
-- `Math.random()` 으로 ID를 생성하지 마세요. `crypto.randomUUID()`를 사용하세요.
-
-## 🔑 환경변수
-| 변수명 | 용도 | 비고 |
-|--------|------|------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL | 공개 |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon 공개 키 | 공개 |
-| `NEXT_PUBLIC_KAKAO_APP_KEY` | 카카오 JS SDK 앱 키 | 공개 |
-| `NEXT_PUBLIC_ADMIN_PASSWORD` | 어드민 로그인 비밀번호 | 공개 (Vercel 설정 필수) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role 키 — API Route 전용 | **비공개** (절대 클라이언트 노출 금지) |
-| `TELEGRAM_BOT_TOKEN` | 텔레그램 봇 API 토큰 | 비공개 |
-| `TELEGRAM_CHAT_ID` | 텔레그램 관리자 채팅 ID | 비공개 |
-| `SENTRY_AUTH_TOKEN` | Sentry 소스맵 업로드용 토큰 | 비공개 |
-
-## 📁 주요 shared/lib 파일
-| 파일 | 역할 | 사용 환경 |
-|------|------|-----------|
-| `constants.ts` | `BASE_URL` 등 전역 상수 | 공용 |
-| `supabase.ts` | Supabase anon 키 싱글턴 클라이언트 | 클라이언트 |
-| `supabaseAdmin.ts` | Supabase service_role 클라이언트 — RLS 우회 | **서버 전용** |
-| `maskName.ts` | 이름 마스킹 유틸 | 공용 |
-| `telegramNotify.ts` | 텔레그램 봇 알림 전송 | 서버 전용 |
-| `dateUtils.ts` | 날짜 포맷·인증 만료 계산 (`CERT_VALIDITY_MONTHS`) | 공용 |
-| `emailUtils.ts` | 이메일 형식 검증 | 서버 전용 |
-| `partnerCookie.ts` | 파트너 유입 코드 30일 쿠키 set/get | 클라이언트 |
-
-## 🗃 DB 스키마 관리 규칙
-
-> **이 규칙은 예외 없이 적용됩니다.**
-
-- **스키마 문서 위치:** `DB_SCHEMA.md` (프로젝트 루트)
-- **동기화 의무:** 아래 경우 반드시 `DB_SCHEMA.md`를 먼저 업데이트한 후 코드를 작성합니다.
-  - 새 테이블 생성
-  - 컬럼 추가 / 삭제 / 타입 변경
-  - 인덱스 · 제약 추가 / 삭제
-  - `supabase/migrations/` 에 새 SQL 파일 추가
-- **마이그레이션 파일:** `supabase/migrations/{설명}.sql` 형식으로 작성하고 git에 커밋합니다.
-- **변경 이력:** `DB_SCHEMA.md` 하단 "변경 이력" 테이블에 날짜와 내용을 기록합니다.
-
-## 🐛 알려진 기술 부채
-- ~~**[SEC-01]** 관리자 인증이 클라이언트 사이드 전용~~ → ✅ `proxy.ts` 서버사이드 쿠키 가드 + 커스텀 비밀번호 인증
-- ~~**[SEC-02]** `useLookupResult` 전체 이름 스캔~~ → ✅ 해결
-- ~~**[BUG-01]** `isUpdate` 시 `jobSeeking`/`selectedRegions` 미복원~~ → ✅ 해결
-- ~~**[CODE-01]** `BASE_URL` 여러 파일 하드코딩~~ → ✅ 해결
-- ~~**[TEST-01]** `buildResult`, `quizReducer` 테스트 미작성~~ → ✅ 해결
-- ~~**[SEC-03]** `/admin` URL 보호가 클라이언트 사이드 전용~~ → ✅ `proxy.ts` 서버사이드 쿠키 가드 + `/admin/login` 분리
-- ~~**[SEC-04]** Supabase RLS 미적용~~ → ✅ `supabase/migrations/add_rls.sql` — `partners` anon 차단, `test_results` anon DELETE 차단
-- ~~**[SEC-05-A]** `places` 어드민 쓰기가 anon 키 노출~~ → ✅ `/api/admin/places` Route + service_role 키 + 쿠키 인증 가드
-- **[SEC-05-B]** `test_results` / `partners` 어드민 쓰기가 여전히 anon 키 사용 → `/api/admin/results`, `/api/admin/partners` Route 전환 시 anon 쓰기 정책 완전 제거 가능 (선택적 개선)
+- 인라인 스타일링 대신 Tailwind 클래스를 사용하세요. (단, `wordBreak: 'keep-all'`은 Tailwind 미지원으로 인라인 허용)
+- `font-size < 16px` input 요소 생성 금지 (iOS 줌 트리거).
+- 모달에서 `overflow: hidden` 단독 사용 금지 — 바텀시트 패턴(`max-h-[92svh] flex flex-col + overflow-y-auto flex-1`) 사용.
 
 ## 💬 소통 스타일
 - 간결하고 기술적인 톤을 유지하세요.
 - 코드를 수정할 때는 수정된 부분과 그 이유를 요약해서 설명하세요.
+
+---
+
+## 🏷 버전 히스토리
+| 태그 | 커밋 | 내용 |
+|------|------|------|
+| v0.4.0 | f356737 | Supanova 리디자인 + 모바일 반응형 완성 (iOS 줌 방지, 바텀시트 모달, 필터 그리드) |
+| v0.3.0 | f2a3b04 | Supanova Warm Editorial 전면 리디자인 (홈·검색·카드·장소·레벨테스트) |
+| v0.2.x | ~f3b843f | 장소 기능, 인증 유효기간, 하우스클리닝 |
