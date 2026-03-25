@@ -1,6 +1,9 @@
+// ═══════════════════════════════════════════════════
+//  단건 인증 상태 업데이트 훅
+//  ✅ API Route (/api/admin/results/status) 경유 → service_role
+//  🔒 anon 키 직접 호출 제거 (보안 강화)
+// ═══════════════════════════════════════════════════
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/shared/lib/supabase'
-import { calcCertExpiry } from '@/shared/lib/dateUtils'
 import type { TestResult } from '@/shared/types'
 import { ADMIN_QUERY_KEY } from './useAdminResults'
 
@@ -15,41 +18,18 @@ export function useSetStatus() {
 
   return useMutation({
     mutationFn: async ({ result, status, memo }: SetStatusInput) => {
-      const isCertified = status === '인증완료'
-      const certifiedAt = isCertified ? new Date().toISOString() : null
-      const certExpiry  = isCertified ? calcCertExpiry() : null
-
-      // raw_data도 최신 상태로 동기화 (meta.expires_at 포함)
-      const updated: TestResult = {
-        ...result,
-        meta: {
-          ...result.meta,
-          ...(isCertified ? { expires_at: certExpiry! } : {}),
-        },
-        certification: {
-          ...result.certification,
-          status:       status as TestResult['certification']['status'],
-          admin_memo:   memo,
-          certified_at: certifiedAt,
-        },
+      const res = await fetch('/api/admin/results/status', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ result, status, memo }),
+      })
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: '알 수 없는 오류' }))
+        throw new Error(error ?? `HTTP ${res.status}`)
       }
-
-      const { error } = await supabase
-        .from('test_results')
-        .update({
-          cert_status : status,
-          admin_memo  : memo,
-          cert_issued : certifiedAt,
-          cert_expiry : certExpiry,
-          raw_data    : updated,
-        })
-        .eq('test_id', result.meta.test_id)
-
-      if (error) throw new Error(error.message)
-      return { name: result.tester?.name || '', status }
+      return res.json() as Promise<{ name: string; status: string }>
     },
     onSuccess: () => {
-      // 성공 시 캐시 무효화 → 자동 재조회
       queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEY })
     },
   })
