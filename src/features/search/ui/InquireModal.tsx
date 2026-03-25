@@ -64,11 +64,11 @@ export function InquireModal({ caregiver: c, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6"
+      className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-0 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-[460px] shadow-2xl overflow-hidden animate-[slideUp_.22s_ease]"
+        className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] shadow-2xl overflow-hidden animate-[slideUp_.22s_ease] max-h-[92svh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -79,7 +79,8 @@ export function InquireModal({ caregiver: c, onClose }: Props) {
           </p>
         </div>
 
-        <div className="p-6">
+        {/* 스크롤 가능 바디 */}
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 pb-[env(safe-area-inset-bottom,20px)]">
           {reqState === 'done' ? (
             /* ── 요청 완료 뷰 ── */
             <div className="text-center py-4">
@@ -167,7 +168,7 @@ export function InquireModal({ caregiver: c, onClose }: Props) {
               </p>
             </>
           )}
-        </div>
+        </div>{/* /스크롤 바디 */}
       </div>
     </div>
   )

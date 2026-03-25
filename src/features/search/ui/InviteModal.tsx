@@ -36,11 +36,11 @@ export function InviteModal({ onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6"
+      className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-0 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-[460px] shadow-2xl overflow-hidden"
+        className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] shadow-2xl overflow-hidden max-h-[92svh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-5 bg-[#3A9E94] text-white">
@@ -48,7 +48,7 @@ export function InviteModal({ onClose }: Props) {
           <p className="text-[.82rem] text-white/75 mt-1">아래 메시지를 복사해서 돌봄이에게 보내주세요</p>
         </div>
 
-        <div className="p-6">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 pb-[env(safe-area-inset-bottom,20px)]">
           {/* 사용 흐름 */}
           <div className="mb-5 space-y-3">
             {STEPS.map((step, i) => (

@@ -249,8 +249,8 @@ export function SearchPage() {
             </button>
           </div>
 
-          {/* 필터 그룹 행 */}
-          <div className="relative flex flex-wrap gap-3.5 items-end mb-4" style={{ zIndex: 1 }}>
+          {/* 필터 그룹 행 — 모바일: 2열 그리드, 데스크톱: flex wrap */}
+          <div className="relative grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5 items-end mb-4" style={{ zIndex: 1 }}>
             <FilterGroup label="지역">
               <select
                 value={filters.region}
@@ -310,7 +310,7 @@ export function SearchPage() {
               </select>
             </FilterGroup>
 
-            <span className="ml-auto text-[13px] text-[#9C9890] self-end pb-0.5">
+            <span className="col-span-2 sm:col-auto ml-auto text-right sm:text-left text-[13px] text-[#9C9890] self-end pb-0.5">
               <strong className="text-[#D85A3A] font-black">{sorted.length}</strong>명 표시 중
             </span>
           </div>
@@ -433,7 +433,8 @@ export function SearchPage() {
 // ── FilterGroup helper ─────────────────────────
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5 min-w-[160px]">
+    // 모바일: 그리드 셀 전체 너비 사용 / 데스크톱: 최소 160px flex item
+    <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[160px]">
       <label className="text-[11px] font-bold text-[#9C9890] uppercase tracking-[.08em]">{label}</label>
       {children}
     </div>

@@ -22,23 +22,25 @@ export function LookupModal({ onSelect, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-5"
+      className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-0 sm:p-5"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}
     >
-      <div className="bg-white rounded-2xl w-full max-w-[460px] shadow-2xl animate-[fadeUp_.2s_ease]">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] shadow-2xl animate-[fadeUp_.2s_ease] max-h-[92svh] flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3.5 border-b border-[#E4E0DC]">
+        <div className="flex items-center justify-between px-6 pt-5 pb-3.5 border-b border-[#E4E0DC] shrink-0">
           <h3 className="text-base font-bold text-[#1A1A1A]">내 결과 이어보기</h3>
+          {/* 터치타겟 44px 확보 */}
           <button
             onClick={handleClose}
-            className="w-7 h-7 rounded-full bg-[#F7F5F3] flex items-center justify-center text-[#8A8A8A] hover:bg-[#E4E0DC] hover:text-[#1A1A1A] transition-colors text-sm"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[#8A8A8A] hover:bg-[#E4E0DC] hover:text-[#1A1A1A] transition-colors text-base -mr-2"
+            aria-label="닫기"
           >
             ✕
           </button>
         </div>
 
-        {/* 바디 */}
-        <div className="px-6 py-5">
+        {/* 바디 — 스크롤 가능 */}
+        <div className="px-5 sm:px-6 py-5 overflow-y-auto flex-1 pb-[env(safe-area-inset-bottom,20px)]">
           <p className="text-[.86rem] text-[#8A8A8A] mb-3.5 leading-[1.55]">
             이름과 휴대폰 번호를 함께 입력하면 저장된 결과를 불러옵니다.<br />
             서류 첨부나 결과 확인을 이어서 진행할 수 있습니다.

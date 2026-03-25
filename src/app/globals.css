@@ -42,12 +42,17 @@ html, body {
   }
 }
 
+/* ── iOS 줌인 방지 — input/select/textarea 포커스 시 font-size < 16px 이면 자동 줌 발생 */
+input, select, textarea {
+  font-size: max(16px, 1em);
+}
+
 /* 공통 select 스타일 */
 .filter-select {
   padding: 9px 32px 9px 13px;
   border: 1.5px solid #E4E0DC;
   border-radius: 8px;
-  font-size: .87rem;
+  font-size: 1rem; /* 16px — iOS 줌 방지 */
   outline: none;
   background-color: #fff;
   color: #1A1A1A;
@@ -59,3 +64,5 @@ html, body {
   transition: border-color .15s;
 }
 .filter-select:focus { border-color: #D85A3A; }
+/* 모바일 2열 그리드에서 select가 셀 너비를 꽉 채우도록 */
+.filter-select { width: 100%; }
