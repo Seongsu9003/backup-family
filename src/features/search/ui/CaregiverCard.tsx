@@ -2,7 +2,9 @@
 
 // ═══════════════════════════════════════════════════
 //  돌봄이 카드 — Supanova Double-Bezel + Spring
+//  문의하기 → /search/[testId] 페이지로 라우트 이동
 // ═══════════════════════════════════════════════════
+import Link from 'next/link'
 import { AnonymizedCaregiver, LV_COLORS, scoreRange } from '../model/types'
 
 const LV_BADGE: Record<number, string> = {
@@ -15,10 +17,9 @@ const LV_BADGE: Record<number, string> = {
 
 interface Props {
   caregiver: AnonymizedCaregiver
-  onInquire: () => void
 }
 
-export function CaregiverCard({ caregiver: c, onInquire }: Props) {
+export function CaregiverCard({ caregiver: c }: Props) {
   const lvNum    = c.level?.num || 1
   const avatarBg = LV_COLORS[lvNum] || '#888'
 
@@ -89,14 +90,14 @@ export function CaregiverCard({ caregiver: c, onInquire }: Props) {
         <strong className="text-[#5C5852] font-bold">{scoreRange(c.score)}</strong>
       </div>
 
-      {/* 문의 버튼 — Spring */}
-      <button
-        onClick={onInquire}
-        className="relative w-full py-2.5 rounded-xl bg-[#D85A3A] text-white text-[14px] font-bold transition-[transform,background-color] duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-[#C04828] hover:scale-[1.02]"
+      {/* 문의하기 — 페이지 이동 링크 */}
+      <Link
+        href={`/search/${c._testId}`}
+        className="relative block w-full py-2.5 rounded-xl bg-[#D85A3A] text-white text-[14px] font-bold text-center transition-[transform,background-color] duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-[#C04828] hover:scale-[1.02]"
         style={{ zIndex: 1 }}
       >
         문의하기
-      </button>
+      </Link>
     </div>
   )
 }

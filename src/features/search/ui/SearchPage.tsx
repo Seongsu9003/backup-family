@@ -9,9 +9,8 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchCaregivers } from '../model/useSearchCaregivers'
-import { AnonymizedCaregiver, TYPE_COLORS, scoreRange } from '../model/types'
+import { TYPE_COLORS, scoreRange } from '../model/types'
 import { CaregiverCard } from './CaregiverCard'
-import { InquireModal } from './InquireModal'
 import { InviteModal } from './InviteModal'
 
 // ── 필터 상태 타입 ──────────────────────────────
@@ -65,7 +64,6 @@ export function SearchPage() {
 
   const [filters, setFilters]       = useState<Filters>(INITIAL_FILTERS)
   const [sortKey, setSortKey]       = useState<SortKey>('recent')
-  const [inquireTarget, setInquire] = useState<AnonymizedCaregiver | null>(null)
   const [showInvite, setShowInvite] = useState(false)
 
   const regionOptions = useMemo(() => {
@@ -412,7 +410,6 @@ export function SearchPage() {
               <CaregiverCard
                 key={c._internalRef}
                 caregiver={c}
-                onInquire={() => setInquire(c)}
               />
             ))}
           </div>
@@ -420,9 +417,6 @@ export function SearchPage() {
       </main>
 
       {/* 모달 */}
-      {inquireTarget && (
-        <InquireModal caregiver={inquireTarget} onClose={() => setInquire(null)} />
-      )}
       {showInvite && (
         <InviteModal onClose={() => setShowInvite(false)} />
       )}
