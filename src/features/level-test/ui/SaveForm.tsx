@@ -4,6 +4,7 @@
 //  결과 저장 폼 + 저장 완료 뷰 (이름·연락처·구직·지역·서류)
 // ═══════════════════════════════════════════════════
 import { useState } from 'react'
+import Link from 'next/link'
 import type { QuizState, CertDocs } from '../model/types'
 import type { LevelDef, CareTypeDef } from '../model/constants'
 import { useSaveResult } from '../model/useSaveResult'
@@ -38,6 +39,8 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
   const [savedTestId, setSavedTestId] = useState<string | null>(null)
   // isUpdate 시 업데이트 폼은 기본 접힘 상태
   const [updateOpen, setUpdateOpen] = useState(false)
+  // 개인정보 수집·이용 동의 (isUpdate 시 이미 동의한 것으로 간주)
+  const [privacyAgreed, setPrivacyAgreed] = useState(isUpdate)
 
   const { mutate: saveResult, isPending: isSaving } = useSaveResult()
 
@@ -45,6 +48,7 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
     name.trim() !== '' &&
     contact.trim() !== '' &&
     jobSeeking !== '' &&
+    privacyAgreed &&
     (!saved || isUpdate)
 
   // 인증 서류 첨부 가능한 문항 (certifiable 이고 0 초과 응답)
@@ -62,6 +66,7 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
         contact: contact.trim(),
         jobSeeking,
         selectedRegions,
+        privacyAgreedAt: new Date().toISOString(),
       },
       {
         onSuccess: (result) => {
@@ -258,6 +263,35 @@ export function SaveForm({ state, level, careType, certStatus, onMarkSaved, onSe
         certDocs={certDocs}
         onSetDoc={onSetDoc}
       />
+
+      {/* 개인정보 수집·이용 동의 (isUpdate 시 이미 동의 — 숨김) */}
+      {!isUpdate && (
+        <label className={`flex items-start gap-2.5 px-3.5 py-3 rounded-xl border-[1.5px] cursor-pointer transition-all mb-4 ${
+          privacyAgreed
+            ? 'border-[#D85A3A] bg-[#FAE8E3]'
+            : 'border-[#E4E0DC] bg-[#F7F5F3] hover:border-[#F0A090]'
+        }`}>
+          <input
+            type="checkbox"
+            checked={privacyAgreed}
+            onChange={(e) => setPrivacyAgreed(e.target.checked)}
+            className="mt-0.5 w-[18px] h-[18px] shrink-0 accent-[#D85A3A] cursor-pointer"
+          />
+          <span className="text-[.83rem] text-[#4A4A4A] leading-[1.5]" style={{ wordBreak: 'keep-all' }}>
+            <span className="font-semibold text-[#1A1A1A]">[필수] 개인정보 수집·이용 동의</span>
+            <br />
+            이름, 연락처, 선호 지역 등을 돌봄이 구인·구직 연결 목적으로 수집합니다.{' '}
+            <Link
+              href="/privacy"
+              target="_blank"
+              className="text-[#D85A3A] underline underline-offset-2 hover:text-[#C04828] font-medium"
+              onClick={(e) => e.stopPropagation()}
+            >
+              전문 보기
+            </Link>
+          </span>
+        </label>
+      )}
 
       <button
         onClick={handleSave}

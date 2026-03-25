@@ -14,10 +14,11 @@ export interface SavePayload {
   contact: string
   jobSeeking: string
   selectedRegions: string[]
+  privacyAgreedAt?: string  // 개인정보 수집·이용 동의 일시 (ISO string)
 }
 
 export function buildResult(payload: SavePayload) {
-  const { quizState, questions, name, contact, jobSeeking, selectedRegions } = payload
+  const { quizState, questions, name, contact, jobSeeking, selectedRegions, privacyAgreedAt } = payload
   const attachedDocs = Object.values(quizState.certDocs).filter(Boolean) as string[]
   const certStatus = attachedDocs.length > 0 ? '검토중' : '미인증'
 
@@ -29,6 +30,7 @@ export function buildResult(payload: SavePayload) {
       created_at: now.toISOString(),
       expires_at: calcCertExpiry(now),
       version: '1.3',
+      privacy_agreed_at: privacyAgreedAt ?? null,  // 개인정보 동의 일시 (raw_data에 보관)
     },
     tester: {
       name,
