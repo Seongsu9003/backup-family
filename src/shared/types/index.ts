@@ -6,6 +6,9 @@ export interface TesterInfo {
   name: string
   contact: string
   preferred_region: string[]
+  nickname?:   string   // 돌봄이가 설정한 닉네임 (미설정 시 성OO 폴백)
+  avatar_key?: string   // 캐릭터 풀 key (미설정 시 testId seed DiceBear 폴백)
+  bio?:        string   // 한 줄 자기소개 (max 60자, 미설정 시 유형 설명 폴백)
 }
 
 export interface ScoreInfo {

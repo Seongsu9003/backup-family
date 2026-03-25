@@ -2,11 +2,12 @@
 
 // ═══════════════════════════════════════════════════
 //  돌봄이 카드 — Supanova Double-Bezel + Spring
-//  Phase 1 개선:
+//  Phase 1+2 개선:
 //  - 레벨: Lv.{num} 만 표시 (레이블 제거)
 //  - 유형 배지: 중복 "형형" 제거
 //  - 아바타: DiceBear fun-emoji (testId seed, 임시)
-//  - 닉네임: 마스킹 이름 → "닉네임" 레이블로 표시
+//  - 닉네임: nickname 설정 시 우선 표시, 없으면 maskedName
+//  - bio: 설정 시 유형 설명 대신 표시
 //  - 등록일: "N개월 전 합류" 표시
 //  - 접수 완료 배지
 // ═══════════════════════════════════════════════════
@@ -81,8 +82,12 @@ export function CaregiverCard({ caregiver: c }: Props) {
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[15px] font-bold text-[#1A1714] truncate">{c.maskedName}</span>
-            <span className="text-[11px] text-[#9C9890] font-medium shrink-0">닉네임</span>
+            <span className="text-[15px] font-bold text-[#1A1714] truncate">
+              {c.nickname || c.maskedName}
+            </span>
+            {c.nickname && (
+              <span className="text-[11px] text-[#9C9890] font-medium shrink-0">닉네임</span>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-[12px] text-[#9C9890]">구직 활동 중</span>
@@ -126,13 +131,13 @@ export function CaregiverCard({ caregiver: c }: Props) {
         )}
       </div>
 
-      {/* 유형 설명 */}
-      {typeInfo && (
+      {/* bio 또는 유형 설명 */}
+      {(c.bio || typeInfo) && (
         <div
           className="relative text-[12px] text-[#5C5852] leading-[1.5] bg-[#F7F5F2] rounded-lg px-3 py-2 mb-3.5"
           style={{ zIndex: 1, wordBreak: 'keep-all' } as React.CSSProperties}
         >
-          {typeInfo.desc}
+          {c.bio || typeInfo?.desc}
         </div>
       )}
 

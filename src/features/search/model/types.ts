@@ -12,6 +12,9 @@ export interface AnonymizedCaregiver {
   score: number
   jobSeeking: string       // 구직 상태 (필터 토글용)
   joinedAt: string         // 등록일 (meta.created_at ISO string)
+  nickname:   string       // 돌봄이 닉네임 (미설정 시 maskedName)
+  avatarKey:  string       // 캐릭터 key (미설정 시 '')
+  bio:        string       // 한 줄 자기소개 (미설정 시 '')
 }
 
 export const TYPE_COLORS: Record<string, string> = {
@@ -45,6 +48,9 @@ export function anonymize(r: TestResult): AnonymizedCaregiver {
     score:        r.score?.total || 0,
     jobSeeking:   r.job_seeking || '',
     joinedAt:     r.meta?.created_at || '',
+    nickname:     r.tester?.nickname || '',
+    avatarKey:    r.tester?.avatar_key || '',
+    bio:          r.tester?.bio || '',
   }
 }
 
