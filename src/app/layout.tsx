@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Providers } from './providers'
-// @fontsource-variable: 빌드 타임에 폰트를 자체 호스팅 → 외부 CDN 요청 제거, CLS 방지
-import '@fontsource-variable/noto-sans-kr'
+// Pretendard Variable: 자체 호스팅 → 외부 CDN 요청 제거, CLS 방지
+// Dynamic subset: 사용된 글자만 로드 → 성능 최적화
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css'
 import './globals.css'
 import { BASE_URL } from '@/shared/lib/constants'
 

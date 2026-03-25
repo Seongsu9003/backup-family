@@ -1,7 +1,9 @@
 // ═══════════════════════════════════════════════════
-//  대문 페이지 (서버 컴포넌트)
-//  - 3가지 서비스 가치 제안 카드
-//  - 신뢰 지표 (인증 돌봄이 수 · 등록 장소 수) — Supabase 실시간
+//  대문 페이지 (서버 컴포넌트) — Supanova Warm Editorial
+//  ─ §1 Editorial Split 히어로
+//  ─ §2 Section divider
+//  ─ §3 Bento Grid (보호자 피처드 2:3 / 돌봄이·장소 1:3)
+//  ─ §4 Dark CTA Trust Strip
 // ═══════════════════════════════════════════════════
 import Link from 'next/link'
 import { supabase } from '@/shared/lib/supabase'
@@ -24,128 +26,297 @@ async function fetchStats() {
   }
 }
 
-// ── 서비스 카드 정의 ──────────────────────────────
-const SERVICES = [
-  {
-    icon: '👨‍👩‍👧',
-    badge: '보호자',
-    badgeColor: 'bg-[#E8F4FD] text-[#1565C0]',
-    title: '가족 같은\n돌봄이 찾기',
-    desc: '돌봄 공백을 채워줄 수 있는\n가족 같은 돌봄이를 찾을 수 있어요.',
-    cta: '돌봄이 찾아보기',
-    href: '/search',
-    accent: '#1565C0',
-    bg: 'hover:bg-[#F0F7FF]',
-    border: 'hover:border-[#1565C0]',
-    ctaStyle: 'bg-[#1565C0] hover:bg-[#0D47A1]',
-  },
-  {
-    icon: '📋',
-    badge: '돌봄이',
-    badgeColor: 'bg-[#FFF3E0] text-[#E65100]',
-    title: '내 돌봄 스타일\n프로필 만들기',
-    desc: '돌봄이라면? 나의 돌봄 스타일과\n자격을 증명할 수 있는 프로필을 만들 수 있어요.',
-    cta: '무료 레벨 테스트',
-    href: '/test',
-    accent: '#D85A3A',
-    bg: 'hover:bg-[#FFF8F6]',
-    border: 'hover:border-[#D85A3A]',
-    ctaStyle: 'bg-[#D85A3A] hover:bg-[#C04828]',
-  },
-  {
-    icon: '📍',
-    badge: '모두',
-    badgeColor: 'bg-[#E8F5E9] text-[#2E7D32]',
-    title: '아이와 함께\n가기 좋은 곳',
-    desc: '내가 직접 돌보는 날엔 우리 아이와\n무얼 하면 좋을지 함께 나누어요.',
-    cta: '장소 둘러보기',
-    href: '/places',
-    accent: '#2E7D32',
-    bg: 'hover:bg-[#F1F8F2]',
-    border: 'hover:border-[#2E7D32]',
-    ctaStyle: 'bg-[#2E7D32] hover:bg-[#1B5E20]',
-  },
-]
+// ── Double-Bezel Stat 카드 ────────────────────────
+// 바깥 border + 안쪽 inset ring = Supanova Double-Bezel 패턴
+function StatCard({
+  icon,
+  iconBg,
+  value,
+  valueColor,
+  label,
+}: {
+  icon: string
+  iconBg: string
+  value: string
+  valueColor: string
+  label: string
+}) {
+  return (
+    <div className="relative bg-white rounded-[20px] border border-[#E8E4DF] px-5 py-4 flex items-center gap-4 transition-[transform,box-shadow] duration-[400ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,.09)]">
+      {/* Double-Bezel inner ring */}
+      <div className="absolute inset-[5px] rounded-[15px] border border-black/[0.04] pointer-events-none" />
+      {/* 아이콘 */}
+      <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center text-[22px] shrink-0`}>
+        {icon}
+      </div>
+      {/* 수치 */}
+      <div>
+        <p className={`text-[22px] font-black leading-none tracking-[-0.04em] ${valueColor}`}>
+          {value}
+        </p>
+        <p className="text-[12px] text-[#9C9890] mt-0.5 font-medium">{label}</p>
+      </div>
+    </div>
+  )
+}
 
+// ── 메인 컴포넌트 ─────────────────────────────────
 export async function HomePage() {
   const { certifiedCount, placesCount } = await fetchStats()
 
   return (
-    <div className="flex flex-col items-center w-full max-w-[960px] mx-auto px-4 pt-12 pb-20">
+    <div className="w-full">
 
-      {/* ── 헤더 ── */}
-      <div className="text-center mb-12">
-        <span className="inline-block text-[.72rem] font-semibold tracking-widest text-[#D85A3A] uppercase mb-3">
-          backup-family
-        </span>
-        <h1 className="text-[1.9rem] sm:text-[2.4rem] font-extrabold text-[#1A1A1A] leading-tight mb-4">
-          돌봄이 찾기부터<br />
-          <span className="text-[#D85A3A]">자격 인증</span>, 함께할 공간까지
-        </h1>
-        <p className="text-[.95rem] text-[#666] leading-relaxed max-w-[400px] mx-auto">
-          backup-family는 돌봄이와 보호자를 연결하는<br className="hidden sm:block" />
-          신뢰 기반의 돌봄 서비스입니다.
-        </p>
-      </div>
+      {/* ──────────────────────────────────────────── */}
+      {/*  §1  HERO — Editorial Split                 */}
+      {/* ──────────────────────────────────────────── */}
+      <section className="max-w-[1040px] mx-auto px-5 lg:px-10 pt-14 pb-14 lg:pt-[72px] lg:pb-[72px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] items-center gap-10 lg:gap-0">
 
-      {/* ── 서비스 카드 3종 ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full mb-12">
-        {SERVICES.map((s) => (
-          <Link
-            key={s.href}
-            href={s.href}
-            className={`group flex flex-col bg-white rounded-2xl border-2 border-[#EBEBEB] p-6 transition-all duration-200 ${s.bg} ${s.border} shadow-sm hover:shadow-md`}
-          >
-            {/* 아이콘 + 뱃지 */}
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-3xl">{s.icon}</span>
-              <span className={`text-[.68rem] font-semibold px-2.5 py-0.5 rounded-full ${s.badgeColor}`}>
-                {s.badge}
+          {/* ── Left: 헤드라인 카피 ── */}
+          <div className="lg:pr-12">
+
+            {/* Eyebrow pill */}
+            <span className="inline-flex items-center gap-2 bg-[#FDF2EE] border border-[#D85A3A]/20 rounded-full px-4 py-1.5 text-[11px] font-bold tracking-[.04em] text-[#D85A3A] mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D85A3A]" />
+              믿을 수 있는 돌봄 서비스
+            </span>
+
+            <h1
+              className="text-[clamp(32px,4.5vw,48px)] font-black leading-[1.2] tracking-[-0.04em] text-[#1A1714] mb-5"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              돌봄이 찾기부터{' '}
+              {/* 언더라인 강조 — 인라인 span으로 after pseudo 대체 */}
+              <span className="relative inline-block text-[#D85A3A]">
+                자격 인증
+                <span
+                  className="absolute left-0 right-0 bottom-0.5 h-[3px] rounded-full bg-[#D85A3A]/25"
+                  aria-hidden="true"
+                />
               </span>
-            </div>
+              , 함께할{' '}
+              <br className="hidden sm:block" />
+              공간까지
+            </h1>
 
-            {/* 제목 */}
-            <h2 className="text-[1.05rem] font-extrabold text-[#1A1A1A] leading-snug mb-2 whitespace-pre-line">
-              {s.title}
-            </h2>
-
-            {/* 설명 */}
-            <p className="text-[.82rem] text-[#666] leading-relaxed flex-1 whitespace-pre-line">
-              {s.desc}
+            <p
+              className="text-[15.5px] text-[#5C5852] leading-[1.75] max-w-[400px] mb-8"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              backup-family는 검증된 돌봄이와 보호자를 연결합니다.
+              레벨 테스트로 실력을 증명하고, 아이와 함께 갈 장소도 찾아보세요.
             </p>
 
-            {/* CTA */}
-            <div className={`mt-5 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[.82rem] font-bold text-white transition-colors ${s.ctaStyle}`}>
-              {s.cta}
-              <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+            <div className="flex items-center gap-3.5 flex-wrap">
+              <Link
+                href="/search"
+                className="inline-flex items-center gap-2 bg-[#1A1714] text-white rounded-xl px-6 py-3.5 text-[14px] font-bold transition-[transform,box-shadow] duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,.18)]"
+              >
+                돌봄이 찾아보기 →
+              </Link>
+              <Link
+                href="/test"
+                className="inline-flex items-center bg-transparent text-[#5C5852] border border-[#E8E4DF] rounded-xl px-5 py-3.5 text-[14px] font-semibold transition-[border-color,color] duration-200 hover:border-[#9C9890] hover:text-[#1A1714]"
+              >
+                레벨 테스트 시작
+              </Link>
             </div>
-          </Link>
-        ))}
+          </div>
+
+          {/* ── Right: 신뢰 지표 스탯 카드 ── */}
+          <div className="flex flex-col gap-3.5">
+            <StatCard
+              icon="🏅"
+              iconBg="bg-[#EBF2FC]"
+              value={`${certifiedCount.toLocaleString()}명`}
+              valueColor="text-[#1565C0]"
+              label="인증된 돌봄이"
+            />
+            <StatCard
+              icon="📍"
+              iconBg="bg-[#EEF6EF]"
+              value={`${placesCount.toLocaleString()}곳`}
+              valueColor="text-[#2E7D32]"
+              label="등록된 추천 장소"
+            />
+            <StatCard
+              icon="✨"
+              iconBg="bg-[#FDF2EE]"
+              value="무료"
+              valueColor="text-[#D85A3A]"
+              label="레벨 테스트"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────────────────────────────────── */}
+      {/*  §2  Section divider                        */}
+      {/* ──────────────────────────────────────────── */}
+      <div className="max-w-[1040px] mx-auto px-5 lg:px-10 pb-5">
+        <div className="flex items-center gap-4">
+          <span className="text-[13px] font-bold tracking-[.12em] uppercase text-[#9C9890] shrink-0">
+            서비스 안내
+          </span>
+          <div className="flex-1 h-px bg-[#E8E4DF]" />
+        </div>
       </div>
 
-      {/* ── 신뢰 지표 ── */}
-      <div className="flex items-center gap-6 sm:gap-10 bg-white rounded-2xl border border-[#EBEBEB] px-8 py-5 shadow-sm">
-        <div className="text-center">
-          <p className="text-[1.6rem] font-extrabold text-[#D85A3A] leading-none">
-            {certifiedCount.toLocaleString()}
-            <span className="text-[1rem] font-bold">명</span>
-          </p>
-          <p className="text-[.75rem] text-[#888] mt-1">인증된 돌봄이</p>
-        </div>
-        <div className="w-px h-10 bg-[#EBEBEB]" />
-        <div className="text-center">
-          <p className="text-[1.6rem] font-extrabold text-[#2E7D32] leading-none">
-            {placesCount.toLocaleString()}
-            <span className="text-[1rem] font-bold">곳</span>
-          </p>
-          <p className="text-[.75rem] text-[#888] mt-1">등록된 장소</p>
-        </div>
-        <div className="w-px h-10 bg-[#EBEBEB]" />
-        <div className="text-center">
-          <p className="text-[1.6rem] font-extrabold text-[#1565C0] leading-none">
-            무료
-          </p>
-          <p className="text-[.75rem] text-[#888] mt-1">레벨 테스트</p>
+      {/* ──────────────────────────────────────────── */}
+      {/*  §3  BENTO GRID                             */}
+      {/*  보호자(피처드, 2행) + 돌봄이 + 장소         */}
+      {/* ──────────────────────────────────────────── */}
+      <div className="max-w-[1040px] mx-auto px-5 lg:px-10 pb-20 grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-3.5">
+
+        {/* ── CARD A: 보호자 — featured, lg:2행 ── */}
+        <Link
+          href="/search"
+          className="group relative rounded-3xl border border-[#C8DDEF] bg-gradient-to-br from-[#EBF2FC] via-[#DCE9F9] to-[#C8E2F8] p-8 lg:row-span-2 flex flex-col justify-between min-h-[340px] lg:min-h-[400px] overflow-hidden transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:scale-[1.005] hover:shadow-[0_16px_48px_rgba(0,0,0,.10)]"
+        >
+          {/* Double-Bezel inner ring */}
+          <div
+            className="absolute inset-[6px] rounded-[18px] border border-[#1565C0]/[0.08] pointer-events-none"
+            style={{ zIndex: 1 }}
+            aria-hidden="true"
+          />
+          {/* 장식 서클 */}
+          <div
+            className="absolute -bottom-16 -right-16 w-60 h-60 rounded-full bg-[#1565C0] opacity-[0.08] pointer-events-none"
+            aria-hidden="true"
+          />
+
+          <div className="relative" style={{ zIndex: 2 }}>
+            <span className="inline-flex items-center gap-1.5 bg-[#1565C0]/[0.12] text-[#1565C0] rounded-full px-3 py-1 text-[11px] font-bold tracking-[.04em] mb-5">
+              👨‍👩‍👧 보호자
+            </span>
+            <span className="block text-[52px] leading-none mb-4" aria-hidden="true">🔍</span>
+            <h2
+              className="text-[26px] lg:text-[28px] font-black leading-[1.25] tracking-[-0.03em] text-[#1A1714] mb-3"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              가족 같은<br />돌봄이 찾기
+            </h2>
+            <p
+              className="text-[14.5px] lg:text-[15px] text-[#5C5852] leading-[1.7] max-w-[300px]"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              돌봄 공백을 채워줄 믿을 수 있는 돌봄이를 찾아보세요.
+              레벨·인증 여부·지역별로 필터링할 수 있어요.
+            </p>
+          </div>
+
+          <div className="relative mt-8" style={{ zIndex: 2 }}>
+            <span className="inline-flex items-center gap-2 bg-[#1565C0] text-white rounded-xl px-5 py-3 text-[13px] font-bold transition-transform duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5">
+              돌봄이 찾아보기 →
+            </span>
+          </div>
+        </Link>
+
+        {/* ── CARD B: 돌봄이 ── */}
+        <Link
+          href="/test"
+          className="group relative rounded-3xl border border-[#EDCFC7] bg-gradient-to-br from-[#FDF2EE] to-[#FAE8E3] p-7 flex flex-col overflow-hidden transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:scale-[1.005] hover:shadow-[0_16px_48px_rgba(0,0,0,.10)]"
+        >
+          <div
+            className="absolute inset-[6px] rounded-[18px] border border-[#D85A3A]/[0.08] pointer-events-none"
+            style={{ zIndex: 1 }}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -top-8 -right-8 w-36 h-36 rounded-full bg-[#D85A3A] opacity-[0.08] pointer-events-none"
+            aria-hidden="true"
+          />
+
+          <div className="relative" style={{ zIndex: 2 }}>
+            <span className="inline-flex items-center gap-1.5 bg-[#D85A3A]/[0.12] text-[#D85A3A] rounded-full px-3 py-1 text-[11px] font-bold tracking-[.04em] mb-4">
+              📋 돌봄이
+            </span>
+            <span className="block text-[40px] leading-none mb-3" aria-hidden="true">📋</span>
+            <h2
+              className="text-[21px] font-black leading-[1.25] tracking-[-0.03em] text-[#1A1714] mb-2"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              내 돌봄 스타일<br />프로필 만들기
+            </h2>
+            <p
+              className="text-[13.5px] text-[#5C5852] leading-[1.7] mb-6"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              무료 레벨 테스트로 나의 돌봄 자격을 증명해 보세요.
+            </p>
+          </div>
+          <div className="relative" style={{ zIndex: 2 }}>
+            <span className="inline-flex items-center gap-2 bg-[#D85A3A] text-white rounded-xl px-5 py-3 text-[13px] font-bold transition-transform duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5">
+              무료 레벨 테스트 →
+            </span>
+          </div>
+        </Link>
+
+        {/* ── CARD C: 장소 ── */}
+        <Link
+          href="/places"
+          className="group relative rounded-3xl border border-[#B8D9BB] bg-gradient-to-br from-[#EEF6EF] to-[#DFF0E0] p-7 flex flex-col overflow-hidden transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:scale-[1.005] hover:shadow-[0_16px_48px_rgba(0,0,0,.10)]"
+        >
+          <div
+            className="absolute inset-[6px] rounded-[18px] border border-[#2E7D32]/[0.08] pointer-events-none"
+            style={{ zIndex: 1 }}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -top-8 -right-8 w-36 h-36 rounded-full bg-[#2E7D32] opacity-[0.08] pointer-events-none"
+            aria-hidden="true"
+          />
+
+          <div className="relative" style={{ zIndex: 2 }}>
+            <span className="inline-flex items-center gap-1.5 bg-[#2E7D32]/[0.12] text-[#2E7D32] rounded-full px-3 py-1 text-[11px] font-bold tracking-[.04em] mb-4">
+              📍 모두
+            </span>
+            <span className="block text-[40px] leading-none mb-3" aria-hidden="true">🌿</span>
+            <h2
+              className="text-[21px] font-black leading-[1.25] tracking-[-0.03em] text-[#1A1714] mb-2"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              아이와 함께<br />가기 좋은 곳
+            </h2>
+            <p
+              className="text-[13.5px] text-[#5C5852] leading-[1.7] mb-6"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              직접 돌보는 날, 우리 아이와 무얼 할지 함께 나눠요.
+            </p>
+          </div>
+          <div className="relative" style={{ zIndex: 2 }}>
+            <span className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl px-5 py-3 text-[13px] font-bold transition-transform duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5">
+              장소 둘러보기 →
+            </span>
+          </div>
+        </Link>
+
+      </div>
+
+      {/* ──────────────────────────────────────────── */}
+      {/*  §4  TRUST STRIP — Dark CTA                 */}
+      {/* ──────────────────────────────────────────── */}
+      <div className="max-w-[1040px] mx-auto px-5 lg:px-10 pb-24">
+        <div className="bg-[#1A1714] rounded-3xl px-8 lg:px-12 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div>
+            <h3
+              className="text-[20px] font-black text-white tracking-[-0.03em] mb-1.5"
+              style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+            >
+              돌봄이라면 지금 바로 시작하세요
+            </h3>
+            <p className="text-[14px] text-white/55 leading-relaxed">
+              무료 레벨 테스트로 나만의 프로필을 만들고 보호자와 연결되세요.
+            </p>
+          </div>
+          <Link
+            href="/test"
+            className="shrink-0 bg-[#D85A3A] text-white rounded-xl px-6 py-3.5 text-[14px] font-bold whitespace-nowrap transition-transform duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.04]"
+          >
+            무료 레벨 테스트 시작 →
+          </Link>
         </div>
       </div>
 
