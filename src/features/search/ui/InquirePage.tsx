@@ -3,11 +3,14 @@
 // ═══════════════════════════════════════════════════
 //  돌봄이 연결 요청 페이지 — /search/[id]
 //  보호자가 연락처를 남기면 → /api/notify/contact → 텔레그램 알림
+//  - 점수 행 제거 (보호자 비노출)
+//  - 접수 이력 localStorage 저장/복원
 // ═══════════════════════════════════════════════════
 import { useState } from 'react'
 import Link from 'next/link'
 import { useCaregiver } from '../model/useCaregiver'
 import { scoreRange } from '../model/types'
+import { useInquiryStore, formatInquiryDate } from '../model/useInquiryStore'
 import { BASE_URL } from '@/shared/lib/constants'
 
 type RequestState = 'idle' | 'sending' | 'done' | 'error'
@@ -18,6 +21,7 @@ interface Props {
 
 export function InquirePage({ testId }: Props) {
   const { data: c, isLoading, isError } = useCaregiver(testId)
+  const { addInquiry, getInquiryDate }  = useInquiryStore()
 
   const [parentName, setParentName]       = useState('')
   const [parentContact, setParentContact] = useState('')
@@ -46,18 +50,19 @@ export function InquirePage({ testId }: Props) {
     )
   }
 
-  const typeLabel    = c.careType ? c.careType.label + '형 돌봄이' : '타입 미진단'
-  const certLabel    = c.certStatus === '인증완료' ? '인증 완료' : c.certStatus
-  const regionText   = c.regions.length ? c.regions.join(' · ') : '미등록'
-  const profileUrl   = `${BASE_URL}/profile/${testId}`
-  const canRequest   = parentContact.trim() !== ''
+  const typeLabel   = c.careType ? c.careType.label + '형 돌봄이' : '타입 미진단'
+  const certLabel   = c.certStatus === '인증완료' ? '인증 완료' : c.certStatus
+  const regionText  = c.regions.length ? c.regions.join(' · ') : '미등록'
+  const profileUrl  = `${BASE_URL}/profile/${testId}`
+  const canRequest  = parentContact.trim() !== ''
+  const inquiryDate = getInquiryDate(testId)
 
+  // 보호자에게 노출되는 요약 정보 (점수 제외)
   const rows: [string, string][] = [
-    ['레벨',          c.level?.label || '-'],
-    ['돌봄 타입',     typeLabel],
-    ['역량 점수 구간', scoreRange(c.score)],
-    ['인증 상태',     certLabel],
-    ['선호 지역',     regionText],
+    ['레벨',      c.level?.label || '-'],
+    ['돌봄 유형', typeLabel],
+    ['인증 상태', certLabel],
+    ['선호 지역', regionText],
   ]
 
   const handleRequest = async () => {
@@ -69,17 +74,21 @@ export function InquirePage({ testId }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           caregiverName: `${c.maskedName} 돌봄이 (검색 페이지)`,
+          // 내부 텔레그램 알림용으로는 점수 정보 유지
           caregiverSummary: `${c.level?.label || '-'} · ${typeLabel} · ${scoreRange(c.score)} · ${regionText} · ${certLabel}`,
           profileUrl,
           parentName: parentName.trim() || '미입력',
           parentContact: parentContact.trim(),
         }),
       })
+      addInquiry(testId) // localStorage에 접수 이력 저장
       setReqState('done')
     } catch {
       setReqState('error')
     }
   }
+
+  const isDone = reqState === 'done' || (reqState === 'idle' && !!inquiryDate)
 
   return (
     <div className="min-h-screen bg-[#F7F5F2]">
@@ -100,13 +109,18 @@ export function InquirePage({ testId }: Props) {
 
       <main className="max-w-[480px] mx-auto px-5 py-8">
 
-        {reqState === 'done' ? (
-          /* ── 요청 완료 뷰 ── */
+        {isDone ? (
+          /* ── 접수 완료 뷰 (신규 완료 or 기접수 복원) ── */
           <div className="relative bg-white rounded-2xl border border-[#E8E4DF] p-8 overflow-hidden text-center">
             <div className="absolute inset-[5px] rounded-[14px] border border-black/[0.04] pointer-events-none" />
             <div className="relative" style={{ zIndex: 1 }}>
               <div className="text-[3rem] mb-4">✅</div>
               <p className="text-[17px] font-bold text-[#1A1714] mb-2">연결 요청이 접수되었습니다</p>
+              {inquiryDate && (
+                <p className="text-[12px] font-semibold text-[#2E7D32] bg-[#EEF6EF] rounded-lg px-3 py-1.5 inline-block mb-3">
+                  {formatInquiryDate(inquiryDate)} 접수 완료
+                </p>
+              )}
               <p
                 className="text-[14px] text-[#5C5852] leading-[1.7] mb-7"
                 style={{ wordBreak: 'keep-all' } as React.CSSProperties}
@@ -116,10 +130,17 @@ export function InquirePage({ testId }: Props) {
               </p>
               <Link
                 href="/search"
-                className="block w-full py-3 rounded-xl bg-[#D85A3A] text-white text-[14px] font-bold text-center hover:bg-[#C04828] transition-colors"
+                className="block w-full py-3 rounded-xl bg-[#D85A3A] text-white text-[14px] font-bold text-center hover:bg-[#C04828] transition-colors mb-3"
               >
                 목록으로 돌아가기
               </Link>
+              {/* 재접수 옵션 */}
+              <button
+                onClick={() => setReqState('idle')}
+                className="text-[12px] text-[#9C9890] hover:text-[#5C5852] transition-colors font-medium"
+              >
+                다시 요청하기
+              </button>
             </div>
           </div>
         ) : (

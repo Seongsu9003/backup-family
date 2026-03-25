@@ -5,11 +5,12 @@
 //  - sticky 헤더 (warm bg)
 //  - Editorial 히어로 (ink-on-beige)
 //  - Double-Bezel 필터 바 + 카드 그리드
+//  - 점수 제거, 유형 탐색 중심으로 개편
 // ═══════════════════════════════════════════════════
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchCaregivers } from '../model/useSearchCaregivers'
-import { TYPE_COLORS, scoreRange } from '../model/types'
+import { TYPE_COLORS, CARE_TYPE_INFO } from '../model/types'
 import { CaregiverCard } from './CaregiverCard'
 import { InviteModal } from './InviteModal'
 
@@ -19,43 +20,31 @@ interface Filters {
   level:      string
   cert:       string
   typeCode:   string
-  scoreRange: string
   activeOnly: boolean
 }
 
-type SortKey = 'recent' | 'level_desc' | 'score_desc' | 'cert_first'
+type SortKey = 'recent' | 'level_desc' | 'cert_first'
 
 const INITIAL_FILTERS: Filters = {
-  region: '', level: '', cert: '', typeCode: '', scoreRange: '', activeOnly: false,
+  region: '', level: '', cert: '', typeCode: '', activeOnly: false,
 }
 
 const TYPE_PILLS = [
-  { code: '', label: '전체 타입' },
-  { code: 'ACT', label: '활동형' },
-  { code: 'CAL', label: '차분형' },
-  { code: 'EDU', label: '교육형' },
-  { code: 'CRE', label: '창의형' },
+  { code: '', label: '전체 유형', emoji: '' },
+  { code: 'ACT', label: '활동형', emoji: '🏃' },
+  { code: 'CAL', label: '차분형', emoji: '🌿' },
+  { code: 'EDU', label: '교육형', emoji: '✏️' },
+  { code: 'CRE', label: '창의형', emoji: '🎨' },
 ]
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'recent',     label: '최근 등록순' },
   { value: 'level_desc', label: '레벨 높은순' },
-  { value: 'score_desc', label: '점수 높은순' },
   { value: 'cert_first', label: '인증 완료 우선' },
 ]
 
-const SCORE_RANGE_OPTIONS = [
-  { value: '',                    label: '전체 점수 구간' },
-  { value: '최상위 (90점 이상)',   label: '최상위 (90점 이상)' },
-  { value: '상위 (80점대)',        label: '상위 (80점대)' },
-  { value: '중상위 (70점대)',      label: '중상위 (70점대)' },
-  { value: '중위 (60점대)',        label: '중위 (60점대)' },
-  { value: '중하위 (50점대)',      label: '중하위 (50점대)' },
-  { value: '하위 (50점 미만)',     label: '하위 (50점 미만)' },
-]
-
 function activeFilterCount(f: Filters): number {
-  return [f.region, f.level, f.cert, f.typeCode, f.scoreRange].filter(Boolean).length +
+  return [f.region, f.level, f.cert, f.typeCode].filter(Boolean).length +
     (f.activeOnly ? 1 : 0)
 }
 
@@ -79,7 +68,6 @@ export function SearchPage() {
       if (filters.level      && String(c.level?.num) !== filters.level) return false
       if (filters.cert       && c.certStatus !== filters.cert)          return false
       if (filters.typeCode   && c.careType?.code !== filters.typeCode)  return false
-      if (filters.scoreRange && scoreRange(c.score) !== filters.scoreRange) return false
       return true
     })
   }, [allCaregivers, filters])
@@ -88,7 +76,6 @@ export function SearchPage() {
     const arr = [...filtered]
     switch (sortKey) {
       case 'level_desc': return arr.sort((a, b) => (b.level?.num ?? 0) - (a.level?.num ?? 0))
-      case 'score_desc': return arr.sort((a, b) => b.score - a.score)
       case 'cert_first': return arr.sort((a, b) => {
         if (a.certStatus === '인증완료' && b.certStatus !== '인증완료') return -1
         if (a.certStatus !== '인증완료' && b.certStatus === '인증완료') return 1
@@ -109,13 +96,13 @@ export function SearchPage() {
     if (filters.cert)       chips.push({ label: '인증 완료', clear: () => setFilter('cert')('') })
     if (filters.typeCode) {
       const t = TYPE_PILLS.find((p) => p.code === filters.typeCode)
-      chips.push({ label: t?.label ?? filters.typeCode, clear: () => setFilter('typeCode')('') })
+      chips.push({ label: `${t?.emoji ?? ''} ${t?.label ?? filters.typeCode}`.trim(), clear: () => setFilter('typeCode')('') })
     }
-    if (filters.scoreRange) chips.push({ label: filters.scoreRange, clear: () => setFilter('scoreRange')('') })
     return chips
   }, [filters])
 
   const activeJobs = allCaregivers.filter((c) => c.jobSeeking === '적극적으로 구직 중').length
+  const activeTypeInfo = filters.typeCode ? CARE_TYPE_INFO[filters.typeCode] : null
 
   return (
     <>
@@ -248,7 +235,7 @@ export function SearchPage() {
           </div>
 
           {/* 필터 그룹 행 — 모바일: 2열 그리드, 데스크톱: flex wrap */}
-          <div className="relative grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5 items-end mb-4" style={{ zIndex: 1 }}>
+          <div className="relative grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5 items-end mb-5" style={{ zIndex: 1 }}>
             <FilterGroup label="지역">
               <select
                 value={filters.region}
@@ -269,18 +256,6 @@ export function SearchPage() {
                 <option value="">전체 레벨</option>
                 {[1,2,3,4,5].map((n) => (
                   <option key={n} value={String(n)}>Lv.{n}</option>
-                ))}
-              </select>
-            </FilterGroup>
-
-            <FilterGroup label="점수 구간">
-              <select
-                value={filters.scoreRange}
-                onChange={(e) => setFilter('scoreRange')(e.target.value)}
-                className="filter-select"
-              >
-                {SCORE_RANGE_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </FilterGroup>
@@ -313,32 +288,48 @@ export function SearchPage() {
             </span>
           </div>
 
-          {/* 타입 Pills */}
-          <div className="relative flex flex-wrap gap-2 mb-4" style={{ zIndex: 1 }}>
-            {TYPE_PILLS.map(({ code, label }) => {
-              const active = filters.typeCode === code
-              const color  = TYPE_COLORS[code]
-              return (
-                <button
-                  key={code}
-                  onClick={() => setFilter('typeCode')(code)}
-                  className="px-4 py-1.5 rounded-full border text-[13px] font-semibold transition-[transform,box-shadow,background,color,border-color] duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03]"
-                  style={
-                    active && color
-                      ? { background: color, color: '#fff', borderColor: color }
-                      : active
-                      ? { background: '#1A1714', color: '#fff', borderColor: '#1A1714' }
-                      : { background: '#fff', color: '#5C5852', borderColor: '#E8E4DF' }
-                  }
-                >
-                  {label}
-                </button>
-              )
-            })}
+          {/* ── 유형 탐색 섹션 ── */}
+          <div className="relative border-t border-[#F0EDE9] pt-4" style={{ zIndex: 1 }}>
+            <p className="text-[11px] font-bold text-[#9C9890] uppercase tracking-[.08em] mb-2.5">
+              어떤 유형의 돌봄이를 찾으시나요?
+            </p>
+            <div className="flex flex-wrap gap-2 mb-2.5">
+              {TYPE_PILLS.map(({ code, label, emoji }) => {
+                const active = filters.typeCode === code
+                const color  = TYPE_COLORS[code]
+                return (
+                  <button
+                    key={code}
+                    onClick={() => setFilter('typeCode')(code)}
+                    className="px-4 py-1.5 rounded-full border text-[13px] font-semibold transition-[transform,box-shadow,background,color,border-color] duration-[300ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03]"
+                    style={
+                      active && color
+                        ? { background: color, color: '#fff', borderColor: color }
+                        : active
+                        ? { background: '#1A1714', color: '#fff', borderColor: '#1A1714' }
+                        : { background: '#fff', color: '#5C5852', borderColor: '#E8E4DF' }
+                    }
+                  >
+                    {emoji && <span className="mr-1">{emoji}</span>}{label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* 선택된 유형 설명 — 애니메이션 없이 조건부 렌더 */}
+            {activeTypeInfo && (
+              <div
+                className="flex items-start gap-2 bg-[#F7F5F2] rounded-xl px-3.5 py-2.5 text-[13px] text-[#5C5852] leading-[1.6]"
+                style={{ wordBreak: 'keep-all' } as React.CSSProperties}
+              >
+                <span className="text-base shrink-0 mt-0.5">{activeTypeInfo.emoji}</span>
+                <span>{activeTypeInfo.desc}</span>
+              </div>
+            )}
           </div>
 
           {/* 구직 중 토글 */}
-          <div className="relative" style={{ zIndex: 1 }}>
+          <div className="relative mt-4" style={{ zIndex: 1 }}>
             <label className="flex items-center gap-2.5 cursor-pointer w-fit">
               <button
                 role="switch"
@@ -427,7 +418,6 @@ export function SearchPage() {
 // ── FilterGroup helper ─────────────────────────
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    // 모바일: 그리드 셀 전체 너비 사용 / 데스크톱: 최소 160px flex item
     <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[160px]">
       <label className="text-[11px] font-bold text-[#9C9890] uppercase tracking-[.08em]">{label}</label>
       {children}

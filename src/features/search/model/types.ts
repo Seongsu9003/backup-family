@@ -20,6 +20,14 @@ export const TYPE_COLORS: Record<string, string> = {
   CRE: '#8B4EAB',
 }
 
+/** 유형별 설명 — 보호자용 (어떤 아이에게 맞는 유형인지) */
+export const CARE_TYPE_INFO: Record<string, { emoji: string; desc: string }> = {
+  ACT: { emoji: '🏃', desc: '에너지 넘치고 야외·체육 활동을 좋아하는 아이에게 맞는 유형입니다.' },
+  CAL: { emoji: '🌿', desc: '안정적이고 규칙적인 환경을 선호하는 아이에게 맞는 유형입니다.' },
+  EDU: { emoji: '✏️', desc: '학습·독서·탐구에 관심 많고 지식 자극을 즐기는 아이에게 맞는 유형입니다.' },
+  CRE: { emoji: '🎨', desc: '예술·상상력이 풍부하고 창작 활동을 즐기는 아이에게 맞는 유형입니다.' },
+}
+
 export const LV_COLORS = ['', '#909090', '#4A9FCC', '#3A9E94', '#D85A3A', '#8B4EAB']
 
 export function anonymize(r: TestResult): AnonymizedCaregiver {
