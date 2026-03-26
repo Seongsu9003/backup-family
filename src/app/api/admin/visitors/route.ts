@@ -23,7 +23,6 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from('parent_visitors')
     .select('*')
-    .order('created_at', { ascending: false })
     .limit(500)
 
   if (error) {

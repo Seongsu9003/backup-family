@@ -42,7 +42,12 @@ export function VisitorsPanel() {
       }
     }
     return Array.from(map.values()).sort(
-      (a, b) => new Date(b.visitor.created_at).getTime() - new Date(a.visitor.created_at).getTime()
+      (a, b) => {
+        if (!a.visitor.created_at && !b.visitor.created_at) return 0
+        if (!a.visitor.created_at) return 1
+        if (!b.visitor.created_at) return -1
+        return new Date(b.visitor.created_at).getTime() - new Date(a.visitor.created_at).getTime()
+      }
     )
   }, [visitors])
 
@@ -60,7 +65,7 @@ export function VisitorsPanel() {
   const uniqueEmails = deduped.length
   const todayCount   = useMemo(() => {
     const today = new Date().toDateString()
-    return visitors.filter(v => new Date(v.created_at).toDateString() === today).length
+    return visitors.filter(v => v.created_at && new Date(v.created_at).toDateString() === today).length
   }, [visitors])
 
   if (isLoading) {
@@ -161,7 +166,7 @@ export function VisitorsPanel() {
                     )}
                   </td>
                   <td className="px-5 py-3 text-right text-[.8rem] text-[#5C5852]">
-                    {formatDate(visitor.created_at)}
+                    {visitor.created_at ? formatDate(visitor.created_at) : '—'}
                   </td>
                 </tr>
               ))

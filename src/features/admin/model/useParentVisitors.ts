@@ -2,9 +2,9 @@
 import { useQuery } from '@tanstack/react-query'
 
 export interface ParentVisitor {
-  id?: string        // 테이블 설정에 따라 없을 수 있음
+  id?: string
   email: string
-  created_at: string
+  created_at?: string   // 컬럼 추가 전 레거시 행은 없을 수 있음
 }
 
 async function fetchVisitors(): Promise<ParentVisitor[]> {
