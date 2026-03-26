@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { Providers } from './providers'
+import { GlobalFooter } from './GlobalFooter'
 // Pretendard Variable: 자체 호스팅 → 외부 CDN 요청 제거, CLS 방지
 // Dynamic subset: 사용된 글자만 로드 → 성능 최적화
 import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css'
@@ -41,20 +41,8 @@ export default function RootLayout({
           <div className="flex flex-col flex-1">
             {children}
           </div>
-          {/* 전역 푸터 — 개인정보 처리방침 링크 */}
-          <footer className="border-t border-[#E8E4DF] bg-[#F7F5F2] px-6 py-4">
-            <div className="max-w-[960px] mx-auto flex flex-wrap items-center justify-between gap-2">
-              <span className="text-[12px] text-[#9C9890]">
-                © 2026 backup-family. All rights reserved.
-              </span>
-              <Link
-                href="/privacy"
-                className="text-[12px] text-[#9C9890] hover:text-[#D85A3A] transition-colors underline underline-offset-2"
-              >
-                개인정보 처리방침
-              </Link>
-            </div>
-          </footer>
+          {/* 전역 푸터 — /admin 경로에서는 자동으로 숨김 */}
+          <GlobalFooter />
         </Providers>
       </body>
     </html>

@@ -14,8 +14,20 @@ import { PartnerPanel } from './PartnerPanel'
 import { PlacesPanel } from './PlacesPanel'
 import { ResultsTable } from './ResultsTable'
 import { ResultModal } from './ResultModal'
+import { VisitorsPanel } from './VisitorsPanel'
 
-// CSV 내보내기 유틸
+// ── 사이드바 메뉴 정의 ────────────────────────────
+type MenuKey = 'dashboard' | 'results' | 'visitors' | 'places' | 'partners'
+
+const MENU_ITEMS: { key: MenuKey; label: string; icon: string }[] = [
+  { key: 'dashboard', label: '대시보드',       icon: '📊' },
+  { key: 'results',   label: '돌봄이 관리',    icon: '👥' },
+  { key: 'visitors',  label: '보호자 조회 내역', icon: '👨‍👩‍👧' },
+  { key: 'places',    label: '추천 장소',      icon: '🏥' },
+  { key: 'partners',  label: '파트너',         icon: '🤝' },
+]
+
+// ── CSV 내보내기 유틸 ─────────────────────────────
 function exportCSV(results: TestResult[], tab: TabKey) {
   const list = getTabResults(results, tab)
   if (!list.length) { alert('내보낼 데이터가 없습니다.'); return }
@@ -60,6 +72,7 @@ export function AdminPage() {
   // Supabase 세션 (null = 확인 중, false = 미인증, Session = 인증됨)
   // proxy.ts가 1차 서버사이드 가드, 여기서는 2차 클라이언트 가드를 담당합니다.
   const [session,     setSession]     = useState<Session | null | false>(null)
+  const [activeMenu,  setActiveMenu]  = useState<MenuKey>('dashboard')
   const [activeTab,   setActiveTab]   = useState<TabKey>('all')
   const [selected,    setSelected]    = useState<TestResult | null>(null)
   // ── 일괄 처리 선택 상태 (OPS) ──
@@ -72,7 +85,6 @@ export function AdminPage() {
   useEffect(() => {
     getSession().then((s) => {
       if (!s) {
-        // 세션 없음 → 쿠키도 지우고 로그인 페이지로 이동 (belt-and-suspenders)
         clearSessionCookie().then(() => router.push('/admin/login'))
       } else {
         setSession(s)
@@ -103,7 +115,6 @@ export function AdminPage() {
   }
 
   // ── 전체 선택 / 전체 해제 ─────────────────────
-  // ids가 빈 배열이면 전체 해제, 아니면 해당 ids로 교체
   const handleToggleAll = (ids: string[]) => {
     setSelectedIds(new Set(ids))
   }
@@ -134,70 +145,135 @@ export function AdminPage() {
   // 세션 확인 전 (초기 로딩) 또는 리다이렉트 진행 중
   if (session === null || session === false) {
     return (
-      <div className="min-h-screen bg-[#F7F5F3] flex items-center justify-center">
-        <p className="text-[#8A8A8A] text-sm">인증 확인 중…</p>
+      <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center">
+        <p className="text-[#9C9890] text-sm">인증 확인 중…</p>
       </div>
     )
   }
 
-  // 인증됨
+  const activeItem = MENU_ITEMS.find(m => m.key === activeMenu)!
+
+  // 인증됨 — 사이드바 레이아웃
   return (
-    <>
-      {/* ── TOPBAR ──────────────────────────── */}
-      <header className="bg-[#2C2C2C] px-6 h-14 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-white font-bold text-[.97rem]">backup-family 인증 관리</span>
-          <span className="text-[#888] text-[.72rem]">BUF v1.3 · DEV</span>
+    <div className="flex min-h-screen bg-[#F7F5F2]">
+
+      {/* ── SIDEBAR ─────────────────────────────── */}
+      <aside className="w-[220px] shrink-0 bg-[#1A1714] flex flex-col sticky top-0 h-screen overflow-y-auto">
+
+        {/* 브랜드 */}
+        <div className="px-5 pt-6 pb-5 border-b border-white/[0.07]">
+          <div className="text-white font-bold text-[.95rem] leading-tight tracking-[-0.02em]">
+            backup-family
+          </div>
+          <div className="text-[#5C5852] text-[.7rem] mt-1 font-medium uppercase tracking-[.06em]">
+            Admin Console
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/search" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
-            보호자 조회 페이지
-          </Link>
-          <Link href="/places" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
-            추천 장소 페이지
-          </Link>
-          <Link href="/test" className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors">
-            테스트 페이지
-          </Link>
+
+        {/* 네비게이션 */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          {MENU_ITEMS.map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveMenu(key)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[.84rem] font-medium transition-colors text-left ${
+                activeMenu === key
+                  ? 'bg-[#D85A3A] text-white'
+                  : 'text-[#9C9890] hover:bg-white/[0.06] hover:text-white'
+              }`}
+            >
+              <span className="text-base leading-none">{icon}</span>
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {/* 서비스 링크 */}
+        <div className="px-3 pb-2">
+          <p className="px-3 py-2 text-[.68rem] font-bold uppercase tracking-[.08em] text-[#444]">
+            서비스 페이지
+          </p>
+          {[
+            { href: '/search', label: '보호자 조회' },
+            { href: '/places', label: '추천 장소' },
+            { href: '/test',   label: '레벨 테스트' },
+          ].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[.8rem] text-[#5C5852] hover:bg-white/[0.06] hover:text-[#9C9890] transition-colors"
+            >
+              <span className="w-1 h-1 rounded-full bg-[#444] shrink-0" />
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        {/* 하단 액션 */}
+        <div className="px-3 py-4 border-t border-white/[0.07] space-y-0.5">
           <button
             onClick={() => refetch()}
-            className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[.82rem] text-[#5C5852] hover:bg-white/[0.06] hover:text-[#9C9890] transition-colors text-left"
           >
+            <span className="text-base leading-none">↻</span>
             새로고침
           </button>
           <button
             onClick={handleLogout}
-            className="text-[.78rem] text-[#aaa] px-3 py-1.5 border border-[#444] rounded-lg hover:text-white hover:border-[#666] transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[.82rem] text-[#5C5852] hover:bg-white/[0.06] hover:text-[#C04828] transition-colors text-left"
           >
+            <span className="text-base leading-none">→</span>
             로그아웃
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* ── MAIN ────────────────────────────── */}
-      <main className="max-w-[1400px] mx-auto px-6 py-6 w-full">
-        {isLoading ? (
-          <div className="py-20 text-center text-[#8A8A8A]">데이터 불러오는 중…</div>
-        ) : (
-          <>
-            <StatsDashboard results={results} />
-            <PartnerPanel />
-            <PlacesPanel />
-            <ResultsTable
-              results={results}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-              onRowClick={setSelected}
-              onExportCSV={() => exportCSV(results, activeTab)}
-              selectedIds={selectedIds}
-              onToggleSelect={handleToggleSelect}
-              onToggleAll={handleToggleAll}
-              onBulkCertify={handleBulkCertify}
-              isBulkLoading={bulkSetStatus.isPending}
-            />
-          </>
-        )}
-      </main>
+      {/* ── CONTENT ─────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0">
+
+        {/* 콘텐츠 헤더 */}
+        <header className="shrink-0 bg-white border-b border-[#E8E4DF] px-8 h-14 flex items-center justify-between gap-4">
+          <h1 className="flex items-center gap-2.5 text-[1rem] font-bold text-[#1A1714] tracking-[-0.02em]">
+            <span className="text-[1.1rem]">{activeItem.icon}</span>
+            {activeItem.label}
+          </h1>
+          <span className="text-[.72rem] text-[#9C9890] font-medium">
+            BUF Admin · v1.4
+          </span>
+        </header>
+
+        {/* 섹션별 콘텐츠 */}
+        <main className="flex-1 px-8 py-6 overflow-auto">
+          {isLoading ? (
+            <div className="py-20 text-center text-[#9C9890] text-sm">
+              데이터 불러오는 중…
+            </div>
+          ) : (
+            <>
+              {activeMenu === 'dashboard' && (
+                <StatsDashboard results={results} />
+              )}
+              {activeMenu === 'results' && (
+                <ResultsTable
+                  results={results}
+                  activeTab={activeTab}
+                  onTabChange={handleTabChange}
+                  onRowClick={setSelected}
+                  onExportCSV={() => exportCSV(results, activeTab)}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleAll={handleToggleAll}
+                  onBulkCertify={handleBulkCertify}
+                  isBulkLoading={bulkSetStatus.isPending}
+                />
+              )}
+              {activeMenu === 'visitors' && <VisitorsPanel />}
+              {activeMenu === 'places'   && <PlacesPanel />}
+              {activeMenu === 'partners' && <PartnerPanel />}
+            </>
+          )}
+        </main>
+      </div>
 
       {/* ── 상세 모달 ───────────────────────── */}
       {selected && (
@@ -206,6 +282,6 @@ export function AdminPage() {
           onClose={() => setSelected(null)}
         />
       )}
-    </>
+    </div>
   )
 }
