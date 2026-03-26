@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin } from '@/shared/lib/supabaseAdmin'
 
 const ADMIN_COOKIE = 'buf_admin_session'
 
@@ -20,20 +20,14 @@ export async function GET() {
     return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('parent_visitors')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(500)
 
   if (error) {
-    console.error('[BUF] parent_visitors fetch 실패:', error.message)
-    // 디버그: 실제 오류 메시지를 응답에 포함 (확인 후 제거 예정)
+    console.error('[BUF] parent_visitors fetch 실패:', error.message, error.code)
     return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
   }
 
