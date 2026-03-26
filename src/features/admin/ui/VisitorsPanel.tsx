@@ -143,9 +143,9 @@ export function VisitorsPanel() {
                 </td>
               </tr>
             ) : (
-              filtered.map(({ visitor, count }) => (
+              filtered.map(({ visitor, count }, idx) => (
                 <tr
-                  key={visitor.id}
+                  key={visitor.id ?? `${visitor.email}-${idx}`}
                   className="border-b border-[#F0EDE8] last:border-0 hover:bg-[#FAFAF8] transition-colors"
                 >
                   <td className="px-5 py-3 font-mono text-[.82rem] text-[#1A1714]">

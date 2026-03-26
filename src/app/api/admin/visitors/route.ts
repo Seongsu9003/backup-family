@@ -27,7 +27,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('parent_visitors')
-    .select('id, email, created_at')
+    .select('*')
     .order('created_at', { ascending: false })
     .limit(500)
 

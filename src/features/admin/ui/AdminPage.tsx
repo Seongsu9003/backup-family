@@ -20,11 +20,11 @@ import { VisitorsPanel } from './VisitorsPanel'
 type MenuKey = 'dashboard' | 'results' | 'visitors' | 'places' | 'partners'
 
 const MENU_ITEMS: { key: MenuKey; label: string; icon: string }[] = [
-  { key: 'dashboard', label: '대시보드',       icon: '📊' },
-  { key: 'results',   label: '돌봄이 관리',    icon: '👥' },
-  { key: 'visitors',  label: '보호자 조회 내역', icon: '👨‍👩‍👧' },
-  { key: 'places',    label: '추천 장소',      icon: '🏥' },
-  { key: 'partners',  label: '파트너',         icon: '🤝' },
+  { key: 'dashboard', label: '대시보드',   icon: '📊' },
+  { key: 'results',   label: '돌봄이 관리', icon: '👥' },
+  { key: 'visitors',  label: '보호자 관리', icon: '👨‍👩‍👧' },
+  { key: 'places',    label: '추천 장소',   icon: '🏥' },
+  { key: 'partners',  label: '파트너',      icon: '🤝' },
 ]
 
 // ── CSV 내보내기 유틸 ─────────────────────────────
@@ -190,20 +190,20 @@ export function AdminPage() {
 
         {/* 서비스 링크 */}
         <div className="px-3 pb-2">
-          <p className="px-3 py-2 text-[.68rem] font-bold uppercase tracking-[.08em] text-[#444]">
+          <p className="px-3 py-2 text-[.68rem] font-bold uppercase tracking-[.08em] text-[#666]">
             서비스 페이지
           </p>
           {[
-            { href: '/search', label: '보호자 조회' },
-            { href: '/places', label: '추천 장소' },
+            { href: '/search', label: '돌봄이 리스트' },
+            { href: '/places', label: '장소 추천' },
             { href: '/test',   label: '레벨 테스트' },
           ].map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[.8rem] text-[#5C5852] hover:bg-white/[0.06] hover:text-[#9C9890] transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[.8rem] text-[#888] hover:bg-white/[0.06] hover:text-white transition-colors"
             >
-              <span className="w-1 h-1 rounded-full bg-[#444] shrink-0" />
+              <span className="w-1 h-1 rounded-full bg-[#666] shrink-0" />
               {label}
             </Link>
           ))}
