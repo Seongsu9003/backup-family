@@ -33,7 +33,8 @@ export async function GET() {
 
   if (error) {
     console.error('[BUF] parent_visitors fetch 실패:', error.message)
-    return NextResponse.json({ error: '데이터를 불러올 수 없습니다.' }, { status: 500 })
+    // 디버그: 실제 오류 메시지를 응답에 포함 (확인 후 제거 예정)
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
   }
 
   return NextResponse.json({ visitors: data ?? [] })
